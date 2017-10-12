@@ -41,7 +41,7 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
             np.log10(ne), np.log10(te), np.log10(pec), extrapolate=extrapolate, extrapolation_type="quadratic"
         )
 
-    cpdef double evaluate(self, double density, double temperature):
+    cpdef double evaluate(self, double density, double temperature) except? -1e999:
         return 10 ** self._pec.evaluate(log10(density), log10(temperature))
 
 
@@ -64,7 +64,7 @@ cdef class RecombinationRate(CoreRecombinationRate):
             np.log10(ne), np.log10(te), np.log10(pec), extrapolate=extrapolate, extrapolation_type="quadratic"
         )
 
-    cpdef double evaluate(self, double density, double temperature):
+    cpdef double evaluate(self, double density, double temperature) except? -1e999:
         return 10 ** self._pec.evaluate(log10(density), log10(temperature))
 
 
