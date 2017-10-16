@@ -241,6 +241,12 @@ default["rec"][hydrogen][0][(12, 9)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 130)
 default["rec"][hydrogen][0][(12, 10)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 131)
 default["rec"][hydrogen][0][(12, 11)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 132)
 
+default['eim'][carbon][1][(13, 10)] = ('adf15/pec93#c/pec93#c_llu#c1.dat', 16)
+default["wavelength"][carbon][1] = {(13, 10): 514.33}
+
+default['eim'][carbon][2][(11, 10)] = ('adf15/pec93#c/pec93#c_llu#c2.dat', 15)
+default["wavelength"][carbon][2] = {(11, 10): 465.01}
+
 # TODO: there are concerns about the accuracy of this data
 # Data from NIST Atomic Spectra Database - http://www.nist.gov/pml/data/asd.cfm
 # line emission natural wavelength (in nanometers):
