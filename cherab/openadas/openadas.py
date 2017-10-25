@@ -57,7 +57,7 @@ class OpenADAS(AtomicData):
             #       add an auto-download option to auto-download adas files from openadas
 
             # local copy of adas data
-#            search_paths = [resource_filename("cherab", "/openadas/data")]
+            # search_paths = [resource_filename("cherab", "/openadas/data")]
             search_paths = []
 
             # adas home directory
@@ -65,6 +65,8 @@ class OpenADAS(AtomicData):
                 search_paths.append(os.path.join(os.environ["ADASHOME"], "adas"))
             except KeyError:
                 search_paths.append("/home/adas/adas")
+
+            search_paths.append(os.path.expanduser('~/.cherab/openadas'))
 
             for path in search_paths:
                 if os.path.isdir(path):
