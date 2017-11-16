@@ -29,7 +29,7 @@ class OpenADAS(AtomicData):
     def __init__(self, data_path=None, config=config.default, permit_extrapolation=False):
 
         super().__init__()
-        self._data_path = self._locate_data(data_path)
+        self._data_path = data_path or self._setup_data_path()
 
         # configuration is immutable, changes to ADAS state are not tracked
         self._config = config.copy()
@@ -46,34 +46,16 @@ class OpenADAS(AtomicData):
     def data_path(self):
         return self._data_path
 
-    def _locate_data(self, data_path):
+    def _setup_data_path(self):
 
-        if data_path is None:
+        data_path = os.path.expanduser('~/.cherab/openadas')
 
-            # todo: rework this handling to provide an order of precedence / more sensible options
-            #       user home directory ~/.cherab/openadas/data/ ?
-            #       add a config.rc to the package to configure default search paths / autodownload
-            #       change this code so all data readers try each  location in turn?
-            #       add an auto-download option to auto-download adas files from openadas
-
-            # local copy of adas data
-            # search_paths = [resource_filename("cherab", "/openadas/data")]
-            search_paths = []
-
-            # adas home directory
-            try:
-                search_paths.append(os.path.join(os.environ["ADASHOME"], "adas"))
-            except KeyError:
-                search_paths.append("/home/adas/adas")
-
-            search_paths.append(os.path.expanduser('~/.cherab/openadas'))
-
-            for path in search_paths:
-                if os.path.isdir(path):
-                    data_path = path
-                    break
-            else:
-                raise IOError("Could not find the Open-ADAS data directory.")
+        if not os.path.isdir(data_path):
+            os.makedirs(data_path)
+            os.makedirs(os.path.join(data_path, 'adf12'))
+            os.makedirs(os.path.join(data_path, 'adf15'))
+            os.makedirs(os.path.join(data_path, 'adf21'))
+            os.makedirs(os.path.join(data_path, 'adf22'))
 
         return data_path
 
@@ -187,7 +169,7 @@ class OpenADAS(AtomicData):
             ion = ion.element
 
         try:
-            filename, block_number = self._config["eim"][ion][ionisation][transition]
+            filename, block_number = self._config["excitation"][ion][ionisation][transition]
         except KeyError:
             raise RuntimeError("The requested impact excitation rate data does not have an entry in the "
                                "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
@@ -206,7 +188,7 @@ class OpenADAS(AtomicData):
             ion = ion.element
 
         try:
-            filename, block_number = self._config["rec"][ion][ionisation][transition]
+            filename, block_number = self._config["recombination"][ion][ionisation][transition]
         except KeyError:
             raise RuntimeError("The requested recombination rate data does not have an entry in the "
                                "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
