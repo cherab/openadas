@@ -26,7 +26,7 @@ CONFIGURATION_HEADER_MATCH = '^C\s*Configuration\s*\(2S\+1\)L\(w-1/2\)\s*Energy 
 CONFIGURATION_STRING_MATCH = "^C\s*([0-9]*)\s*((?:[0-9][SPDFG][0-9]\s)*)\s*\(([0-9]*\.?[0-9]*)\)([0-9]*)\(\s*([0-9]*\.?[0-9]*)\)"
 
 PEC_N_TRANSITION_MATCH = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9])\s*N=\s*([0-9]*).*N=\s*([0-9]*)\s*([A-Z]*)$'
-PEC_HYDROGEN_TRANSITION_MATCH = '^\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*N=\s*([0-9]*) - N=\s*([0-9]*)\s*([A-Z]*)'
+PEC_HYDROGEN_TRANSITION_MATCH = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*N=\s*([0-9]*) - N=\s*([0-9]*)\s*([A-Z]*)'
 PEC_FULL_TRANSITION_MATCH = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9])\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
 WAVELENGTH_MATCH = '^\s*[0-9]*\.[0-9] ?A .*$'
 BLOCK_ID_MATCH = '^\s*[0-9]*\.[0-9] ?A\s*([0-9]*)\s*([0-9]*).*/TYPE = ([a-zA-Z]*).*/ISEL *= * ([0-9]*)$'

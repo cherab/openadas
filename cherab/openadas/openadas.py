@@ -17,6 +17,7 @@
 import os
 
 from cherab.core import AtomicData, Isotope
+from cherab.core.atomic.elements import Isotope
 from pkg_resources import resource_filename
 
 from cherab.openadas.read import adf12, adf15, adf21, adf22
@@ -69,7 +70,16 @@ class OpenADAS(AtomicData):
         try:
             return self._config["wavelength"][ion][ionisation][transition]
         except KeyError:
-            raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available.".format(ion.symbol, ionisation, transition))
+            if isinstance(ion, Isotope):
+                element = ion.element
+                try:
+                    return self._config["wavelength"][element][ionisation][transition]
+                except KeyError:
+                    raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
+                                       "".format(ion.symbol, ionisation, transition))
+            else:
+                raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
+                                   "".format(ion.symbol, ionisation, transition))
 
     def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
 
