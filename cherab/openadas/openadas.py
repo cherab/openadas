@@ -15,14 +15,18 @@
 # under the Licence.
 
 import os
+import urllib.request
 
 from cherab.core import AtomicData, Isotope
 from cherab.core.atomic.elements import Isotope
 from pkg_resources import resource_filename
 
-from cherab.openadas.read import adf12, adf15, adf21, adf22
+from cherab.openadas.library import *
+from cherab.openadas.read import adf11, adf12, adf15, adf21, adf22
 from . import config
 from .rates import *
+from cherab.openadas.rates.radiated_power import StageResolvedRadiation
+
 
 
 class OpenADAS(AtomicData):
@@ -208,3 +212,57 @@ class OpenADAS(AtomicData):
         data = adf15(os.path.join(self._data_path, filename), block_number)
         return RecombinationRate(wavelength, data, extrapolate=self._permit_extrapolation)
 
+    def stage_resolved_line_radiation_rate(self, ion, ionisation):
+
+        # extract element from isotope
+        if isinstance(ion, Isotope):
+            ion = ion.element
+
+        try:
+            plt_files = ADF11_PLT_FILES[ion.symbol]
+        except KeyError:
+            raise ValueError("No ADF11 files set for Ion - {}".format(ion.symbol))
+
+        absolute_file_path = self._check_for_adf_file(plt_files['ADAS_Path'], plt_files['Download_URL'])
+
+        densities, temperatures, rate_data = adf11(absolute_file_path, ion, ionisation)
+
+        name = 'Stage Resolved Line Radiation - ({}, {})'.format(ion.symbol, ionisation)
+        return StageResolvedRadiation(ion, ionisation, densities, temperatures, rate_data,
+                                      name=name, extrapolate=self._permit_extrapolation)
+
+    def stage_resolved_continuum_radiation_rate(self, ion, ionisation):
+
+        # extract element from isotope
+        if isinstance(ion, Isotope):
+            ion = ion.element
+
+        try:
+            prb_files = ADF11_PRB_FILES[ion.symbol]
+        except KeyError:
+            raise ValueError("No ADF11 files set for Ion - {}".format(ion.symbol))
+
+        absolute_file_path = self._check_for_adf_file(prb_files['ADAS_Path'], prb_files['Download_URL'])
+
+        densities, temperatures, rate_data = adf11(absolute_file_path, ion, ionisation)
+
+        name = 'Stage Resolved Continuum Radiation - ({}, {})'.format(ion.symbol, ionisation)
+
+        return StageResolvedRadiation(ion, ionisation, densities, temperatures, rate_data,
+                                      name=name, extrapolate=self._permit_extrapolation)
+
+    def _check_for_adf_file(self, relative_adf_file_path, download_path):
+
+        relative_adf_directory, adf_file_name = os.path.split(relative_adf_file_path)
+        absolute_adf_directory = os.path.join(self._data_path, relative_adf_directory)
+        absolute_file_path = os.path.join(absolute_adf_directory, adf_file_name)
+
+        if not os.path.exists(absolute_adf_directory):
+            os.makedirs(absolute_adf_directory)
+
+        if os.path.isfile(absolute_file_path):
+            return absolute_file_path
+        else:
+            urllib.request.urlretrieve(download_path, absolute_file_path)
+
+        return absolute_file_path
