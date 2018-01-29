@@ -42,7 +42,14 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
         )
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
-        return self._pec.evaluate(density, temperature)
+
+        cdef double rate
+
+        rate = self._pec.evaluate(density, temperature)
+        if rate < 0:
+            return 0.0
+
+        return rate
 
 
 # todo: evaluate it the interpolation can be done without the log10 operations? or if this should be ported to the cx rates.
@@ -66,7 +73,14 @@ cdef class RecombinationRate(CoreRecombinationRate):
 
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
-        return self._pec.evaluate(density, temperature)
+
+        cdef double rate
+
+        rate = self._pec.evaluate(density, temperature)
+        if rate < 0:
+            return 0.0
+
+        return rate
 
 
 # cdef class ThermalCXRate(CoreThermalCXRate):

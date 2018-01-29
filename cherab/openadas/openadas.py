@@ -28,7 +28,6 @@ from .rates import *
 from cherab.openadas.rates.radiated_power import StageResolvedRadiation
 
 
-
 class OpenADAS(AtomicData):
 
     def __init__(self, data_path=None, config=config.default, permit_extrapolation=False):
