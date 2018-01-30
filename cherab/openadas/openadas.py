@@ -17,12 +17,13 @@
 import os
 import urllib.request
 
-from cherab.core import AtomicData, Isotope
+from cherab.core import AtomicData
 from cherab.core.atomic.elements import Isotope
-from pkg_resources import resource_filename
+from cherab.core.utility.recursivedict import RecursiveDict
 
 from cherab.openadas.library import *
 from cherab.openadas.read import adf11, adf12, adf15, adf21, adf22
+from cherab.openadas.read.adf15 import add_adf15_to_atomic_data
 from . import config
 from .rates import *
 from cherab.openadas.rates.radiated_power import StageResolvedRadiation
@@ -35,8 +36,7 @@ class OpenADAS(AtomicData):
         super().__init__()
         self._data_path = data_path or self._setup_data_path()
 
-        # configuration is immutable, changes to ADAS state are not tracked
-        self._config = config.copy()
+        self._config = config
 
         # if true informs interpolation objects to allow extrapolation beyond the limits of the tabulated data
         self._permit_extrapolation = permit_extrapolation
@@ -265,3 +265,15 @@ class OpenADAS(AtomicData):
             urllib.request.urlretrieve(download_path, absolute_file_path)
 
         return absolute_file_path
+
+    def add_adf15_file(self, element, ionisation, adf_file_path):
+
+        if not os.path.isfile(adf_file_path):
+            new_path = os.path.join(os.path.expanduser('~/.cherab/openadas'), adf_file_path)
+            if not os.path.isfile(new_path):
+                raise ValueError("Could not find ADF15 file - '{}'".format(adf_file_path))
+            adf_file_path = new_path
+
+        atomic_data_dict = RecursiveDict.from_dict(self._config)
+        atomic_data_dict = add_adf15_to_atomic_data(atomic_data_dict, element, ionisation, adf_file_path)
+        self._config = atomic_data_dict.freeze()

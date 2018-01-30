@@ -136,7 +136,7 @@ DEFAULT_ADF15_FILES = [
 for element, ionisation, relative_adf_path, download_path in DEFAULT_ADF15_FILES:
     print(relative_adf_path)
     _check_for_adf_file(ROOT_DATA_PATH, relative_adf_path, download_path)
-    add_adf15_to_atomic_data(default, element, ionisation, os.path.join(ROOT_DATA_PATH, relative_adf_path))
+    default = add_adf15_to_atomic_data(default, element, ionisation, os.path.join(ROOT_DATA_PATH, relative_adf_path))
 
 # TODO: there are concerns about the accuracy of this data
 # Data from NIST Atomic Spectra Database - http://www.nist.gov/pml/data/asd.cfm

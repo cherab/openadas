@@ -137,6 +137,8 @@ def add_adf15_to_atomic_data(atomic_data_dictionary, element, ionisation, adf_fi
             atomic_data_dictionary[rate_type][element][ionisation][(upper_level, lower_level)] = (adf_file_path, block_num)
             atomic_data_dictionary["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
 
+    return atomic_data_dictionary
+
 
 # Group lines of file into blocks based on precursor '  6561.9A   24...'
 def _group_by_block(source_file, match_string):
