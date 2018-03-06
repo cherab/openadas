@@ -21,7 +21,8 @@ from cherab.core import AtomicData
 from cherab.core.atomic.elements import Isotope
 from cherab.core.utility.recursivedict import RecursiveDict
 
-from cherab.openadas.library import wavelength_database, ADF11_PLT_FILES, ADF11_PRB_FILES, ADF15_PEC_FILES
+from cherab.openadas.library import wavelength_database, ADF11_PLT_FILES, ADF11_PRB_FILES,\
+    ADF12_CXS_FILES, ADF15_PEC_FILES
 from cherab.openadas.read import adf11, adf12, adf15, adf21, adf22
 from cherab.openadas.read.adf15 import add_adf15_to_atomic_data
 from . import config
@@ -36,9 +37,13 @@ class OpenADAS(AtomicData):
         super().__init__()
         self._data_path = data_path or self._setup_data_path()
 
+        # TODO - temporary variable, remove when migration to new interface complete
+        self._old_data_path = "/home/adas/adas"
+
         self._config = config
 
         self._wavelength_list = wavelength_database
+        self._adf12_config = {}
         self._adf15_config = {}
 
         # if true informs interpolation objects to allow extrapolation beyond the limits of the tabulated data
@@ -94,9 +99,11 @@ class OpenADAS(AtomicData):
                 raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
                                    "".format(ion.symbol, ionisation, transition))
 
-    def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
+    def beam_cx_rate(self, line, donor_ion):
 
-        wavelength = self.wavelength(receiver_ion, receiver_ionisation - 1, transition)
+        receiver_ion = line.element
+        receiver_ionisation = line.ionisation + 1
+        transition = line.transition
 
         # extract element from isotope
         if isinstance(donor_ion, Isotope):
@@ -107,11 +114,24 @@ class OpenADAS(AtomicData):
 
         # locate data files
         try:
-            data = self._config["cxs"][donor_ion][receiver_ion][receiver_ionisation]
+            data = self._adf12_config[donor_ion][receiver_ion][receiver_ionisation]
         except KeyError:
-            raise RuntimeError("The requested beam cx rate data does not have an entry in the Open-ADAS configuration"
-                               "(donor ion: {}, receiver ion: {}, ionisation: {}, transition: {})."
-                               "".format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
+
+            # If not found in current configuration try the Open-ADAS library files.
+            try:
+                library_files = ADF12_CXS_FILES[donor_ion][receiver_ion][receiver_ionisation]
+
+                for file in library_files:
+                    donor_metastable, adas_path, download_path = file
+                    adf_file_path = self._check_for_adf_file(adas_path, download_path)
+                    self.add_adf12_file(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, adf_file_path)
+                data = self._adf12_config[donor_ion][receiver_ion][receiver_ionisation]
+            except KeyError:
+                raise RuntimeError("The requested beam cx rate data does not have an entry in the Open-ADAS configuration"
+                                   "(donor ion: {}, receiver ion: {}, ionisation: {}, transition: {})."
+                                   "".format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
+
+        wavelength = self.wavelength(line)
 
         # load and interpolate the relevant transition data from each file
         rates = []
@@ -138,7 +158,7 @@ class OpenADAS(AtomicData):
                                "".format(beam_ion.symbol, plasma_ion.symbol, ionisation))
 
         # load and interpolate data
-        return BeamStoppingRate(adf21(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
+        return BeamStoppingRate(adf21(os.path.join(self._old_data_path, filename)), extrapolate=self._permit_extrapolation)
 
     def beam_population_rate(self, beam_ion, metastable, plasma_ion, ionisation):
 
@@ -158,7 +178,7 @@ class OpenADAS(AtomicData):
                                "".format(beam_ion.symbol, metastable, plasma_ion.symbol, ionisation))
 
         # load and interpolate data
-        return BeamPopulationRate(adf22(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
+        return BeamPopulationRate(adf22(os.path.join(self._old_data_path, filename)), extrapolate=self._permit_extrapolation)
 
     def beam_emission_rate(self, beam_ion, plasma_ion, ionisation, transition):
         # transition: Tuple containing (initial level, final level)
@@ -181,7 +201,7 @@ class OpenADAS(AtomicData):
                                "".format(beam_ion.symbol, plasma_ion.symbol, ionisation, transition))
 
         # load and interpolate data
-        return BeamEmissionRate(adf22(os.path.join(self._data_path, filename)), wavelength, extrapolate=self._permit_extrapolation)
+        return BeamEmissionRate(adf22(os.path.join(self._old_data_path, filename)), wavelength, extrapolate=self._permit_extrapolation)
 
     def impact_excitation_rate(self, ion, ionisation, transition):
 
@@ -297,6 +317,21 @@ class OpenADAS(AtomicData):
             urllib.request.urlretrieve(download_path, absolute_file_path)
 
         return absolute_file_path
+
+    def add_adf12_file(self, donor_ion, receiver_ion, receiver_ionisation, donor_metastable, adf_file_path):
+
+        if not os.path.isfile(adf_file_path):
+            new_path = os.path.join(os.path.expanduser('~/.cherab/openadas'), adf_file_path)
+            if not os.path.isfile(new_path):
+                raise ValueError("Could not find ADF15 file - '{}'".format(adf_file_path))
+            adf_file_path = new_path
+
+        adf12_config = RecursiveDict.from_dict(self._adf12_config)
+        if type(adf12_config[donor_ion][receiver_ion][receiver_ionisation]) == RecursiveDict:
+            adf12_config[donor_ion][receiver_ion][receiver_ionisation] = [(donor_metastable, adf_file_path)]
+        else:
+            adf12_config[donor_ion][receiver_ion][receiver_ionisation].append((donor_metastable, adf_file_path))
+        self._adf12_config = adf12_config.freeze()
 
     def add_adf15_file(self, element, ionisation, adf_file_path):
 

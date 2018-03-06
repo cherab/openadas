@@ -15,5 +15,6 @@
 # under the Licence.
 
 from .wavelength_database import wavelength_database
+from .adf12 import ADF12_CXS_FILES
 from .adf15 import ADF15_PEC_FILES
 from .library import ADF11_PLT_FILES, ADF11_PRB_FILES
