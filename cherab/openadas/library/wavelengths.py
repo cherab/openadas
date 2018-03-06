@@ -4,6 +4,12 @@ from cherab.core.atomic.elements import *
 from cherab.core.utility.recursivedict import RecursiveDict
 
 
+# TODO: there are concerns about the accuracy of this data
+# Data from NIST Atomic Spectra Database - http://www.nist.gov/pml/data/asd.cfm
+# line emission natural wavelength (in nanometers):
+# config[ion][ionisation][(initial_level, final_level)] = wavelength
+
+
 wavelength_database = RecursiveDict()
 
 
