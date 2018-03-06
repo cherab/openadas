@@ -24,6 +24,3 @@ LIBRARY_PATH = os.path.split(__file__)[0]
 ADF11_FILES = json.load(open(os.path.join(LIBRARY_PATH, 'adf11.json')))
 ADF11_PLT_FILES = ADF11_FILES['adf11_plt_files']
 ADF11_PRB_FILES = ADF11_FILES['adf11_prb_files']
-
-
-
