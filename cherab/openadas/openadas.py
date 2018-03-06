@@ -21,7 +21,7 @@ from cherab.core import AtomicData
 from cherab.core.atomic.elements import Isotope
 from cherab.core.utility.recursivedict import RecursiveDict
 
-from cherab.openadas.library import *
+from cherab.openadas.library import wavelength_database, ADF11_PLT_FILES, ADF11_PRB_FILES, ADF15_PEC_FILES
 from cherab.openadas.read import adf11, adf12, adf15, adf21, adf22
 from cherab.openadas.read.adf15 import add_adf15_to_atomic_data
 from . import config
@@ -38,6 +38,9 @@ class OpenADAS(AtomicData):
 
         self._config = config
 
+        self._wavelength_list = wavelength_database
+        self._adf15_config = {}
+
         # if true informs interpolation objects to allow extrapolation beyond the limits of the tabulated data
         self._permit_extrapolation = permit_extrapolation
 
@@ -53,17 +56,24 @@ class OpenADAS(AtomicData):
     def _setup_data_path(self):
 
         data_path = os.path.expanduser('~/.cherab/openadas')
-
         if not os.path.isdir(data_path):
             os.makedirs(data_path)
-            os.makedirs(os.path.join(data_path, 'adf12'))
-            os.makedirs(os.path.join(data_path, 'adf15'))
-            os.makedirs(os.path.join(data_path, 'adf21'))
-            os.makedirs(os.path.join(data_path, 'adf22'))
+        adf12_dir = os.path.join(data_path, 'adf12')
+        if not os.path.isdir(adf12_dir):
+            os.makedirs(adf12_dir)
+        adf15_dir = os.path.join(data_path, 'adf15')
+        if not os.path.isdir(adf15_dir):
+            os.makedirs(adf15_dir)
+        adf21_dir = os.path.join(data_path, 'adf21')
+        if not os.path.isdir(adf21_dir):
+            os.makedirs(adf21_dir)
+        adf22_dir = os.path.join(data_path, 'adf22')
+        if not os.path.isdir(adf22_dir):
+            os.makedirs(adf22_dir)
 
         return data_path
 
-    def wavelength(self, ion, ionisation, transition):
+    def lookup_wavelength(self, ion, ionisation, transition):
         """
         :param ion: Element object defining the ion type.
         :param transition: Tuple containing (initial level, final level)
@@ -71,12 +81,12 @@ class OpenADAS(AtomicData):
         """
 
         try:
-            return self._config["wavelength"][ion][ionisation][transition]
+            return self._wavelength_list[ion][ionisation][transition]
         except KeyError:
             if isinstance(ion, Isotope):
                 element = ion.element
                 try:
-                    return self._config["wavelength"][element][ionisation][transition]
+                    return self._wavelength_list[element][ionisation][transition]
                 except KeyError:
                     raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
                                        "".format(ion.symbol, ionisation, transition))
@@ -175,18 +185,28 @@ class OpenADAS(AtomicData):
 
     def impact_excitation_rate(self, ion, ionisation, transition):
 
-        wavelength = self.wavelength(ion, ionisation, transition)
-
         # extract element from isotope
         if isinstance(ion, Isotope):
             ion = ion.element
 
         try:
-            filename, block_number = self._config["excitation"][ion][ionisation][transition]
+            filename, block_number = self._adf15_config["excitation"][ion][ionisation][transition]
+            wavelength = self._adf15_config["wavelength"][ion][ionisation][transition]
+            self._wavelength_list[ion][ionisation][transition] = wavelength
         except KeyError:
-            raise RuntimeError("The requested impact excitation rate data does not have an entry in the "
-                               "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
-                               "".format(ion.symbol, ionisation, transition))
+
+            # If not found in current configuration try the Open-ADAS library files.
+            try:
+                library_file = ADF15_PEC_FILES[ion][ionisation]
+                adf_file_path = self._check_for_adf_file(library_file['ADAS_Path'], library_file['Download_URL'])
+                self.add_adf15_file(ion, ionisation, adf_file_path)
+                filename, block_number = self._adf15_config["excitation"][ion][ionisation][transition]
+                wavelength = self._adf15_config["wavelength"][ion][ionisation][transition]
+                self._wavelength_list[ion][ionisation][transition] = wavelength
+            except KeyError:
+                raise RuntimeError("The requested impact excitation rate data does not have an entry in the "
+                                   "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
+                                   "".format(ion.symbol, ionisation, transition))
 
         # load and interpolate data
         data = adf15(os.path.join(self._data_path, filename), block_number)
@@ -194,18 +214,28 @@ class OpenADAS(AtomicData):
 
     def recombination_rate(self, ion, ionisation, transition):
 
-        wavelength = self.wavelength(ion, ionisation, transition)
-
         # extract element from isotope
         if isinstance(ion, Isotope):
             ion = ion.element
 
         try:
-            filename, block_number = self._config["recombination"][ion][ionisation][transition]
+            filename, block_number = self._adf15_config["recombination"][ion][ionisation][transition]
+            wavelength = self._adf15_config["wavelength"][ion][ionisation][transition]
+            self._wavelength_list[ion][ionisation][transition] = wavelength
         except KeyError:
-            raise RuntimeError("The requested recombination rate data does not have an entry in the "
-                               "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
-                               "".format(ion.symbol, ionisation, transition))
+
+            # If not found in current configuration try the Open-ADAS library files.
+            try:
+                library_file = ADF15_PEC_FILES[ion][ionisation]
+                adf_file_path = self._check_for_adf_file(library_file['ADAS_Path'], library_file['Download_URL'])
+                self.add_adf15_file(ion, ionisation, adf_file_path)
+                filename, block_number = self._adf15_config["recombination"][ion][ionisation][transition]
+                wavelength = self._adf15_config["wavelength"][ion][ionisation][transition]
+                self._wavelength_list[ion][ionisation][transition] = wavelength
+            except KeyError:
+                raise RuntimeError("The requested recombination rate data does not have an entry in the "
+                                   "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
+                                   "".format(ion.symbol, ionisation, transition))
 
         # load and interpolate data
         data = adf15(os.path.join(self._data_path, filename), block_number)
@@ -262,6 +292,8 @@ class OpenADAS(AtomicData):
         if os.path.isfile(absolute_file_path):
             return absolute_file_path
         else:
+            # TODO - catch urllib exceptions and return nicer error to user
+            print("Downloading ADF file - '{}' to '~/.cherab/openadas'".format(relative_adf_file_path))
             urllib.request.urlretrieve(download_path, absolute_file_path)
 
         return absolute_file_path
@@ -274,6 +306,6 @@ class OpenADAS(AtomicData):
                 raise ValueError("Could not find ADF15 file - '{}'".format(adf_file_path))
             adf_file_path = new_path
 
-        atomic_data_dict = RecursiveDict.from_dict(self._config)
-        atomic_data_dict = add_adf15_to_atomic_data(atomic_data_dict, element, ionisation, adf_file_path)
-        self._config = atomic_data_dict.freeze()
+        adf15_config = RecursiveDict.from_dict(self._adf15_config)
+        adf15_config = add_adf15_to_atomic_data(adf15_config, element, ionisation, adf_file_path)
+        self._adf15_config = adf15_config.freeze()
