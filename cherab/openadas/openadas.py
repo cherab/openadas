@@ -22,7 +22,7 @@ from cherab.core.atomic.elements import Isotope
 from cherab.core.utility.recursivedict import RecursiveDict
 
 from cherab.openadas.library import wavelength_database, ADF11_PLT_FILES, ADF11_PRB_FILES,\
-    ADF12_CXS_FILES, ADF15_PEC_FILES, ADF21_BMS_FILES
+    ADF12_CXS_FILES, ADF15_PEC_FILES, ADF21_BMS_FILES, ADF22_BMP_FILES
 from cherab.openadas.read import adf11, adf12, adf15, adf21, adf22
 from cherab.openadas.read.adf15 import add_adf15_to_atomic_data
 from . import config
@@ -46,6 +46,7 @@ class OpenADAS(AtomicData):
         self._adf12_config = {}
         self._adf15_config = {}
         self._adf21_config = {}
+        self._adf22_config = {}
 
         # if true informs interpolation objects to allow extrapolation beyond the limits of the tabulated data
         self._permit_extrapolation = permit_extrapolation
@@ -180,14 +181,22 @@ class OpenADAS(AtomicData):
 
         # locate data file
         try:
-            filename = self._config["bmp"][beam_ion][metastable][plasma_ion][ionisation]
+            filename = self._adf22_config["bmp"][beam_ion][metastable][plasma_ion][ionisation]
         except KeyError:
-            raise RuntimeError("The requested beam population rate data does not have an entry in the "
-                               "Open-ADAS configuration (beam ion: {}, metastable: {}, plasma ion: {}, ionisation: {})."
-                               "".format(beam_ion.symbol, metastable, plasma_ion.symbol, ionisation))
+
+            # If not found in current configuration try the Open-ADAS library files.
+            try:
+                adas_path, download_path = ADF22_BMP_FILES[beam_ion][metastable][plasma_ion][ionisation]
+                adf_file_path = self._check_for_adf_file(adas_path, download_path)
+                self.add_adf22_bmp_file(beam_ion, metastable, plasma_ion, ionisation, adf_file_path)
+                filename = self._adf22_config["bmp"][beam_ion][metastable][plasma_ion][ionisation]
+            except KeyError:
+                raise RuntimeError("The requested beam population rate data does not have an entry in the "
+                                   "Open-ADAS configuration (beam ion: {}, metastable: {}, plasma ion: {}, ionisation: {})."
+                                   "".format(beam_ion.symbol, metastable, plasma_ion.symbol, ionisation))
 
         # load and interpolate data
-        return BeamPopulationRate(adf22(os.path.join(self._old_data_path, filename)), extrapolate=self._permit_extrapolation)
+        return BeamPopulationRate(adf22(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
 
     def beam_emission_rate(self, beam_ion, plasma_ion, ionisation, transition):
         # transition: Tuple containing (initial level, final level)
@@ -365,3 +374,16 @@ class OpenADAS(AtomicData):
         adf21_config = RecursiveDict.from_dict(self._adf21_config)
         adf21_config[beam_ion][plasma_ion][ionisation] = adf_file_path
         self._adf21_config = adf21_config.freeze()
+
+    def add_adf22_bmp_file(self, beam_ion, metastable, plasma_ion, ionisation, adf_file_path):
+
+        if not os.path.isfile(adf_file_path):
+            new_path = os.path.join(os.path.expanduser('~/.cherab/openadas'), adf_file_path)
+            if not os.path.isfile(new_path):
+                raise ValueError("Could not find ADF15 file - '{}'".format(adf_file_path))
+            adf_file_path = new_path
+
+        adf22_config = RecursiveDict.from_dict(self._adf22_config)
+        adf22_config['bmp'][beam_ion][metastable][plasma_ion][ionisation] = adf_file_path
+        self._adf22_config = adf22_config.freeze()
+
