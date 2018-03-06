@@ -1,7 +1,23 @@
 
+# Copyright 2014-2017 United Kingdom Atomic Energy Authority
+#
+# Licensed under the EUPL, Version 1.1 or – as soon they will be approved by the
+# European Commission - subsequent versions of the EUPL (the "Licence");
+# You may not use this work except in compliance with the Licence.
+# You may obtain a copy of the Licence at:
+#
+# https://joinup.ec.europa.eu/software/page/eupl5
+#
+# Unless required by applicable law or agreed to in writing, software distributed
+# under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR
+# CONDITIONS OF ANY KIND, either express or implied.
+#
+# See the Licence for the specific language governing permissions and limitations
+# under the Licence.
+
 from cherab.core.utility.recursivedict import RecursiveDict
 from cherab.core.atomic.elements import hydrogen, helium, lithium, beryllium, boron, carbon,\
-    nitrogen, oxygen, fluorine, neon
+    nitrogen, oxygen, fluorine, neon, argon
 
 
 # beam population coefficients:
@@ -90,3 +106,46 @@ ADF22_BMP_FILES[hydrogen][3][neon][10] = ("adf22/bmp97#h/bmp97#h_3_ne10.dat", "h
 # H(m=4) -> Ne10+
 ADF22_BMP_FILES[hydrogen][4][neon][10] = ("adf22/bmp97#h/bmp97#h_4_ne10.dat", "http://open.adas.ac.uk/download/adf22/bmp97][h/bmp97][h_4_ne10.dat")
 
+
+# beam emission coefficients:
+# config["bme"][beam_species][target_ion][target_ionisation][(initial_level, final_level)] = coefficient
+
+ADF22_BME_FILES = RecursiveDict()
+
+ADF22_BME_FILES["description"] = "Recommended set of ADF22 files for beam emission coefficients. " \
+                                 "config[beam_species][target_ion][target_ionisation][(initial_level, final_level)] = coefficient"
+
+# H0(n=3) + H+ -> H0(n=2) + H+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][1][hydrogen][(3, 2)] = ("adf22/bme10#h/bme10#h_h1.dat", "http://open.adas.ac.uk/download/adf22/bme10][h/bme10][h_h1.dat")
+
+# H0(n=3) + He2+ -> H0(n=2) + He2+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][2][helium][(3, 2)] = ("adf22/bme97#h/bme97#h_he2.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_he2.dat")
+
+# H0(n=3) + Li3+ -> H0(n=2) + Li3+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][3][lithium][(3, 2)] = ("adf22/bme97#h/bme97#h_li3.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_li3.dat")
+
+# H0(n=3) + Be4+ -> H0(n=2) + Be4+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][4][beryllium][(3, 2)] = ("adf22/bme97#h/bme97#h_be4.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_be4.dat")
+
+# H0(n=3) + B5+ -> H0(n=2) + B5+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][5][boron][(3, 2)] = ("adf22/bme97#h/bme97#h_b5.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_b5.dat")
+
+# H0(n=3) + C6+ -> H0(n=2) + C6+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][6][carbon][(3, 2)] = ("adf22/bme97#h/bme97#h_c6.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_c6.dat")
+
+# H0(n=3) + N7+ -> H0(n=2) + N7+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][7][nitrogen][(3, 2)] = ("adf22/bme97#h/bme97#h_n7.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_n7.dat")
+
+# H0(n=3) + F9+ -> H0(n=2) + F9+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][8][fluorine][(3, 2)] = ("adf22/bme97#h/bme97#h_f9.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_f9.dat")
+
+# H0(n=3) + O8+ -> H0(n=2) + O8+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][9][oxygen][(3, 2)] = ("adf22/bme97#h/bme97#h_o8.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_o8.dat")
+
+# H0(n=3) + Ne10+ -> H0(n=2) + Ne10+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][10][neon][(3, 2)] = ("adf22/bme97#h/bme97#h_ne10.dat", "http://open.adas.ac.uk/download/adf22/bme97][h/bme97][h_ne10.dat")
+
+# H0(n=3) + Ar18+ -> H0(n=2) + Ar18+ + hv (656.28 nm)
+ADF22_BME_FILES[hydrogen][11][argon][(3, 2)] = ("adf22/bme99#h/bme99#h_ar18.dat", "http://open.adas.ac.uk/download/adf22/bme99][h/bme99][h_ar18.dat")
+
+# default["bme"][hydrogen][12][iron][(3, 2)] = "adf22/bme99#h/bme99#h_fe26.dat"  # H0(n=3) + Fe16+ -> H0(n=2) + Fe26+ + hv (656.28 nm)
