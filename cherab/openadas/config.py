@@ -123,20 +123,6 @@ default["bms"][hydrogen][fluorine][9] = "adf21/bms97#h/bms97#h_f9.dat"        # 
 default["bms"][hydrogen][neon][10] = "adf21/bms97#h/bms97#h_ne10.dat"    # H -> Ne10+
 
 
-ROOT_DATA_PATH = os.path.expanduser('~/.cherab/openadas')
-
-DEFAULT_ADF15_FILES = [
-    (hydrogen, 0, "adf15/pec12#h/pec12#h_pju#h0.dat", "http://open.adas.ac.uk/download/adf15/pec12][h/pec12][h_pju][h0.dat"),
-    (carbon, 0, "adf15/pec96#c/pec96#c_vsu#c0.dat", "http://open.adas.ac.uk/download/adf15/pec96][c/pec96][c_vsu][c0.dat"),
-    (carbon, 1, "adf15/pec96#c/pec96#c_vsu#c1.dat", "http://open.adas.ac.uk/download/adf15/pec96][c/pec96][c_vsu][c1.dat"),
-    (carbon, 2, "adf15/pec96#c/pec96#c_vsu#c2.dat", "http://open.adas.ac.uk/download/adf15/pec96][c/pec96][c_vsu][c2.dat"),
-]
-
-
-for element, ionisation, relative_adf_path, download_path in DEFAULT_ADF15_FILES:
-    print(relative_adf_path)
-    _check_for_adf_file(ROOT_DATA_PATH, relative_adf_path, download_path)
-    default = add_adf15_to_atomic_data(default, element, ionisation, os.path.join(ROOT_DATA_PATH, relative_adf_path))
 
 # TODO: there are concerns about the accuracy of this data
 # Data from NIST Atomic Spectra Database - http://www.nist.gov/pml/data/asd.cfm
