@@ -75,7 +75,7 @@ class OpenADAS(AtomicData):
 
         return data_path
 
-    def lookup_wavelength(self, ion, ionisation, transition):
+    def wavelength(self, ion, ionisation, transition):
         """
         :param ion: Element object defining the ion type.
         :param transition: Tuple containing (initial level, final level)
@@ -96,11 +96,7 @@ class OpenADAS(AtomicData):
                 raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
                                    "".format(ion.symbol, ionisation, transition))
 
-    def beam_cx_rate(self, line, donor_ion):
-
-        receiver_ion = line.element
-        receiver_ionisation = line.ionisation + 1
-        transition = line.transition
+    def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
 
         # extract element from isotope
         if isinstance(donor_ion, Isotope):
@@ -128,7 +124,7 @@ class OpenADAS(AtomicData):
                                    "(donor ion: {}, receiver ion: {}, ionisation: {}, transition: {})."
                                    "".format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
 
-        wavelength = self.wavelength(line)
+        wavelength = self.wavelength(receiver_ion, receiver_ionisation - 1, transition)
 
         # load and interpolate the relevant transition data from each file
         rates = []
@@ -195,7 +191,7 @@ class OpenADAS(AtomicData):
 
     def beam_emission_rate(self, beam_ion, plasma_ion, ionisation, transition):
 
-        wavelength = self.lookup_wavelength(beam_ion, 0, transition)
+        wavelength = self.wavelength(beam_ion, 0, transition)
 
         # extract element from isotope
         if isinstance(beam_ion, Isotope):
