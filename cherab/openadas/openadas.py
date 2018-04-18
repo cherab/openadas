@@ -17,6 +17,7 @@
 import os
 
 from cherab.core import AtomicData, Isotope
+from cherab.core.atomic.elements import Isotope
 from pkg_resources import resource_filename
 
 from cherab.openadas.read import adf12, adf15, adf21, adf22
@@ -29,7 +30,7 @@ class OpenADAS(AtomicData):
     def __init__(self, data_path=None, config=config.default, permit_extrapolation=False):
 
         super().__init__()
-        self._data_path = self._locate_data(data_path)
+        self._data_path = data_path or self._setup_data_path()
 
         # configuration is immutable, changes to ADAS state are not tracked
         self._config = config.copy()
@@ -46,32 +47,16 @@ class OpenADAS(AtomicData):
     def data_path(self):
         return self._data_path
 
-    def _locate_data(self, data_path):
+    def _setup_data_path(self):
 
-        if data_path is None:
+        data_path = os.path.expanduser('~/.cherab/openadas')
 
-            # todo: rework this handling to provide an order of precedence / more sensible options
-            #       user home directory ~/.cherab/openadas/data/ ?
-            #       add a config.rc to the package to configure default search paths / autodownload
-            #       change this code so all data readers try each  location in turn?
-            #       add an auto-download option to auto-download adas files from openadas
-
-            # local copy of adas data
-#            search_paths = [resource_filename("cherab", "/openadas/data")]
-            search_paths = []
-
-            # adas home directory
-            try:
-                search_paths.append(os.path.join(os.environ["ADASHOME"], "adas"))
-            except KeyError:
-                search_paths.append("/home/adas/adas")
-
-            for path in search_paths:
-                if os.path.isdir(path):
-                    data_path = path
-                    break
-            else:
-                raise IOError("Could not find the Open-ADAS data directory.")
+        if not os.path.isdir(data_path):
+            os.makedirs(data_path)
+            os.makedirs(os.path.join(data_path, 'adf12'))
+            os.makedirs(os.path.join(data_path, 'adf15'))
+            os.makedirs(os.path.join(data_path, 'adf21'))
+            os.makedirs(os.path.join(data_path, 'adf22'))
 
         return data_path
 
@@ -85,7 +70,16 @@ class OpenADAS(AtomicData):
         try:
             return self._config["wavelength"][ion][ionisation][transition]
         except KeyError:
-            raise RuntimeError("The requested data is not available.")
+            if isinstance(ion, Isotope):
+                element = ion.element
+                try:
+                    return self._config["wavelength"][element][ionisation][transition]
+                except KeyError:
+                    raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
+                                       "".format(ion.symbol, ionisation, transition))
+            else:
+                raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
+                                   "".format(ion.symbol, ionisation, transition))
 
     def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
 
@@ -102,8 +96,9 @@ class OpenADAS(AtomicData):
         try:
             data = self._config["cxs"][donor_ion][receiver_ion][receiver_ionisation]
         except KeyError:
-            raise RuntimeError("The requested data does not have an entry in the Open-ADAS configuration"
-                   "(donor ion: {}, receiver ion: {}, ionisation: {}, transition: {}).".format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
+            raise RuntimeError("The requested beam cx rate data does not have an entry in the Open-ADAS configuration"
+                               "(donor ion: {}, receiver ion: {}, ionisation: {}, transition: {})."
+                               "".format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
 
         # load and interpolate the relevant transition data from each file
         rates = []
@@ -125,8 +120,9 @@ class OpenADAS(AtomicData):
         try:
             filename = self._config["bms"][beam_ion][plasma_ion][ionisation]
         except KeyError:
-            raise RuntimeError("The requested data does not have an entry in the Open-ADAS configuration"
-                               "(beam ion: {}, plasma ion: {}, ionisation: {}).".format(beam_ion.symbol, plasma_ion.symbol, ionisation))
+            raise RuntimeError("The requested beam stopping rate data does not have an entry in the Open-ADAS "
+                               "configuration (beam ion: {}, plasma ion: {}, ionisation: {})."
+                               "".format(beam_ion.symbol, plasma_ion.symbol, ionisation))
 
         # load and interpolate data
         return BeamStoppingRate(adf21(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
@@ -144,8 +140,9 @@ class OpenADAS(AtomicData):
         try:
             filename = self._config["bmp"][beam_ion][metastable][plasma_ion][ionisation]
         except KeyError:
-            raise RuntimeError("The requested data does not have an entry in the Open-ADAS configuration"
-                               "(beam ion: {}, metastable: {}, plasma ion: {}, ionisation: {}).".format(beam_ion.symbol, metastable, plasma_ion.symbol, ionisation))
+            raise RuntimeError("The requested beam population rate data does not have an entry in the "
+                               "Open-ADAS configuration (beam ion: {}, metastable: {}, plasma ion: {}, ionisation: {})."
+                               "".format(beam_ion.symbol, metastable, plasma_ion.symbol, ionisation))
 
         # load and interpolate data
         return BeamPopulationRate(adf22(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
@@ -166,8 +163,9 @@ class OpenADAS(AtomicData):
         try:
             filename = self._config["bme"][beam_ion][plasma_ion][ionisation][transition]
         except KeyError:
-            raise RuntimeError("The requested data does not have an entry in the Open-ADAS configuration"
-                           "(beam ion: {}, plasma ion: {}, ionisation: {}, transition: {}).".format(beam_ion.symbol, plasma_ion.symbol, ionisation, transition))
+            raise RuntimeError("The requested beam emission rate data does not have an entry in the "
+                               "Open-ADAS configuration (beam ion: {}, plasma ion: {}, ionisation: {}, transition: {})."
+                               "".format(beam_ion.symbol, plasma_ion.symbol, ionisation, transition))
 
         # load and interpolate data
         return BeamEmissionRate(adf22(os.path.join(self._data_path, filename)), wavelength, extrapolate=self._permit_extrapolation)
@@ -181,9 +179,11 @@ class OpenADAS(AtomicData):
             ion = ion.element
 
         try:
-            filename, block_number = self._config["eim"][ion][ionisation][transition]
+            filename, block_number = self._config["excitation"][ion][ionisation][transition]
         except KeyError:
-            raise RuntimeError("The requested data does not have an entry in the Open-ADAS configuration.")
+            raise RuntimeError("The requested impact excitation rate data does not have an entry in the "
+                               "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
+                               "".format(ion.symbol, ionisation, transition))
 
         # load and interpolate data
         data = adf15(os.path.join(self._data_path, filename), block_number)
@@ -198,9 +198,11 @@ class OpenADAS(AtomicData):
             ion = ion.element
 
         try:
-            filename, block_number = self._config["rec"][ion][ionisation][transition]
+            filename, block_number = self._config["recombination"][ion][ionisation][transition]
         except KeyError:
-            raise RuntimeError("The requested data does not have an entry in the Open-ADAS configuration.")
+            raise RuntimeError("The requested recombination rate data does not have an entry in the "
+                               "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
+                               "".format(ion.symbol, ionisation, transition))
 
         # load and interpolate data
         data = adf15(os.path.join(self._data_path, filename), block_number)

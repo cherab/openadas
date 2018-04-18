@@ -14,8 +14,28 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from cherab.core.atomic.elements import *
+import os
+import urllib.request
+
+from cherab.core.atomic import *
 from cherab.core.utility.recursivedict import RecursiveDict
+from cherab.openadas.read.adf15 import add_adf15_to_atomic_data
+
+
+def _check_for_adf_file(open_adas_root_path, relative_adf_file_path, download_path):
+
+    relative_adf_directory, adf_file_name = os.path.split(relative_adf_file_path)
+    absolute_adf_directory = os.path.join(open_adas_root_path, relative_adf_directory)
+    absolute_file_path = os.path.join(absolute_adf_directory, adf_file_name)
+
+    if not os.path.exists(absolute_adf_directory):
+        os.makedirs(absolute_adf_directory)
+
+    if os.path.isfile(absolute_file_path):
+        return
+    else:
+        urllib.request.urlretrieve(download_path, absolute_file_path)
+
 
 # TODO: future expansion, need to consider how to handle isotopes - include atomic weight with a "catch all" for ion species with a natural isotope abundance
 default = RecursiveDict()
@@ -103,434 +123,25 @@ default["bms"][hydrogen][fluorine][9] = "adf21/bms97#h/bms97#h_f9.dat"        # 
 default["bms"][hydrogen][neon][10] = "adf21/bms97#h/bms97#h_ne10.dat"    # H -> Ne10+
 
 
-# Electron Impact Excitation rate coefficients (PECs)
-# config["eim"][species][ionisation][(initial_level, final_level)] = coefficient
-default["eim"][hydrogen][0][(2, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 1)
-default["eim"][hydrogen][0][(3, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 2)
-default["eim"][hydrogen][0][(3, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 3)
-default["eim"][hydrogen][0][(4, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 4)
-default["eim"][hydrogen][0][(4, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 5)
-default["eim"][hydrogen][0][(4, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 6)
-default["eim"][hydrogen][0][(5, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 7)
-default["eim"][hydrogen][0][(5, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 8)
-default["eim"][hydrogen][0][(5, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 9)
-default["eim"][hydrogen][0][(5, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 10)
-default["eim"][hydrogen][0][(6, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 11)
-default["eim"][hydrogen][0][(6, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 12)
-default["eim"][hydrogen][0][(6, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 13)
-default["eim"][hydrogen][0][(6, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 14)
-default["eim"][hydrogen][0][(6, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 15)
-default["eim"][hydrogen][0][(7, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 16)
-default["eim"][hydrogen][0][(7, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 17)
-default["eim"][hydrogen][0][(7, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 18)
-default["eim"][hydrogen][0][(7, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 19)
-default["eim"][hydrogen][0][(7, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 20)
-default["eim"][hydrogen][0][(7, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 21)
-default["eim"][hydrogen][0][(8, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 22)
-default["eim"][hydrogen][0][(8, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 23)
-default["eim"][hydrogen][0][(8, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 24)
-default["eim"][hydrogen][0][(8, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 25)
-default["eim"][hydrogen][0][(8, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 26)
-default["eim"][hydrogen][0][(8, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 27)
-default["eim"][hydrogen][0][(8, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 28)
-default["eim"][hydrogen][0][(9, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 29)
-default["eim"][hydrogen][0][(9, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 30)
-default["eim"][hydrogen][0][(9, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 31)
-default["eim"][hydrogen][0][(9, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 32)
-default["eim"][hydrogen][0][(9, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 33)
-default["eim"][hydrogen][0][(9, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 34)
-default["eim"][hydrogen][0][(9, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 35)
-default["eim"][hydrogen][0][(9, 8)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 36)
-default["eim"][hydrogen][0][(10, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 37)
-default["eim"][hydrogen][0][(10, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 38)
-default["eim"][hydrogen][0][(10, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 39)
-default["eim"][hydrogen][0][(10, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 40)
-default["eim"][hydrogen][0][(10, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 41)
-default["eim"][hydrogen][0][(10, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 42)
-default["eim"][hydrogen][0][(10, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 43)
-default["eim"][hydrogen][0][(10, 8)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 44)
-default["eim"][hydrogen][0][(10, 9)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 45)
-default["eim"][hydrogen][0][(11, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 46)
-default["eim"][hydrogen][0][(11, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 47)
-default["eim"][hydrogen][0][(11, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 48)
-default["eim"][hydrogen][0][(11, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 49)
-default["eim"][hydrogen][0][(11, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 50)
-default["eim"][hydrogen][0][(11, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 51)
-default["eim"][hydrogen][0][(11, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 52)
-default["eim"][hydrogen][0][(11, 8)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 53)
-default["eim"][hydrogen][0][(11, 9)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 54)
-default["eim"][hydrogen][0][(11, 10)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 55)
-default["eim"][hydrogen][0][(12, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 56)
-default["eim"][hydrogen][0][(12, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 57)
-default["eim"][hydrogen][0][(12, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 58)
-default["eim"][hydrogen][0][(12, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 59)
-default["eim"][hydrogen][0][(12, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 60)
-default["eim"][hydrogen][0][(12, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 61)
-default["eim"][hydrogen][0][(12, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 62)
-default["eim"][hydrogen][0][(12, 8)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 63)
-default["eim"][hydrogen][0][(12, 9)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 64)
-default["eim"][hydrogen][0][(12, 10)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 65)
-default["eim"][hydrogen][0][(12, 11)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 66)
+ROOT_DATA_PATH = os.path.expanduser('~/.cherab/openadas')
 
-# Recombination rate coefficients (PECs)
-# config["rec"][species][ionisation][(initial_level, final_level)] = coefficient
-default["rec"][hydrogen][0][(2, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 67)
-default["rec"][hydrogen][0][(3, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 68)
-default["rec"][hydrogen][0][(3, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 69)
-default["rec"][hydrogen][0][(4, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 70)
-default["rec"][hydrogen][0][(4, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 71)
-default["rec"][hydrogen][0][(4, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 72)
-default["rec"][hydrogen][0][(5, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 73)
-default["rec"][hydrogen][0][(5, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 74)
-default["rec"][hydrogen][0][(5, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 75)
-default["rec"][hydrogen][0][(5, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 76)
-default["rec"][hydrogen][0][(6, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 77)
-default["rec"][hydrogen][0][(6, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 78)
-default["rec"][hydrogen][0][(6, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 79)
-default["rec"][hydrogen][0][(6, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 80)
-default["rec"][hydrogen][0][(6, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 81)
-default["rec"][hydrogen][0][(7, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 82)
-default["rec"][hydrogen][0][(7, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 83)
-default["rec"][hydrogen][0][(7, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 84)
-default["rec"][hydrogen][0][(7, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 85)
-default["rec"][hydrogen][0][(7, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 86)
-default["rec"][hydrogen][0][(7, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 87)
-default["rec"][hydrogen][0][(8, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 88)
-default["rec"][hydrogen][0][(8, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 89)
-default["rec"][hydrogen][0][(8, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 90)
-default["rec"][hydrogen][0][(8, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 91)
-default["rec"][hydrogen][0][(8, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 92)
-default["rec"][hydrogen][0][(8, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 93)
-default["rec"][hydrogen][0][(8, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 94)
-default["rec"][hydrogen][0][(9, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 95)
-default["rec"][hydrogen][0][(9, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 96)
-default["rec"][hydrogen][0][(9, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 97)
-default["rec"][hydrogen][0][(9, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 98)
-default["rec"][hydrogen][0][(9, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 99)
-default["rec"][hydrogen][0][(9, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 100)
-default["rec"][hydrogen][0][(9, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 101)
-default["rec"][hydrogen][0][(9, 8)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 102)
-default["rec"][hydrogen][0][(10, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 103)
-default["rec"][hydrogen][0][(10, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 104)
-default["rec"][hydrogen][0][(10, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 105)
-default["rec"][hydrogen][0][(10, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 106)
-default["rec"][hydrogen][0][(10, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 107)
-default["rec"][hydrogen][0][(10, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 108)
-default["rec"][hydrogen][0][(10, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 109)
-default["rec"][hydrogen][0][(10, 8)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 110)
-default["rec"][hydrogen][0][(10, 9)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 111)
-default["rec"][hydrogen][0][(11, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 112)
-default["rec"][hydrogen][0][(11, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 113)
-default["rec"][hydrogen][0][(11, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 114)
-default["rec"][hydrogen][0][(11, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 115)
-default["rec"][hydrogen][0][(11, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 116)
-default["rec"][hydrogen][0][(11, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 117)
-default["rec"][hydrogen][0][(11, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 118)
-default["rec"][hydrogen][0][(11, 8)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 119)
-default["rec"][hydrogen][0][(11, 9)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 120)
-default["rec"][hydrogen][0][(11, 10)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 121)
-default["rec"][hydrogen][0][(12, 1)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 122)
-default["rec"][hydrogen][0][(12, 2)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 123)
-default["rec"][hydrogen][0][(12, 3)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 124)
-default["rec"][hydrogen][0][(12, 4)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 125)
-default["rec"][hydrogen][0][(12, 5)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 126)
-default["rec"][hydrogen][0][(12, 6)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 127)
-default["rec"][hydrogen][0][(12, 7)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 128)
-default["rec"][hydrogen][0][(12, 8)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 129)
-default["rec"][hydrogen][0][(12, 9)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 130)
-default["rec"][hydrogen][0][(12, 10)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 131)
-default["rec"][hydrogen][0][(12, 11)] = ('adf15/pec96#h/pec96#h_pju#h0.dat', 132)
+DEFAULT_ADF15_FILES = [
+    (hydrogen, 0, "adf15/pec12#h/pec12#h_pju#h0.dat", "http://open.adas.ac.uk/download/adf15/pec12][h/pec12][h_pju][h0.dat"),
+    (carbon, 0, "adf15/pec96#c/pec96#c_vsu#c0.dat", "http://open.adas.ac.uk/download/adf15/pec96][c/pec96][c_vsu][c0.dat"),
+    (carbon, 1, "adf15/pec96#c/pec96#c_vsu#c1.dat", "http://open.adas.ac.uk/download/adf15/pec96][c/pec96][c_vsu][c1.dat"),
+    (carbon, 2, "adf15/pec96#c/pec96#c_vsu#c2.dat", "http://open.adas.ac.uk/download/adf15/pec96][c/pec96][c_vsu][c2.dat"),
+]
 
-default['eim'][carbon][1][(13, 10)] = ('adf15/pec93#c/pec93#c_llu#c1.dat', 16)
-default["wavelength"][carbon][1] = {(13, 10): 514.33}
 
-default['eim'][carbon][2][(11, 10)] = ('adf15/pec93#c/pec93#c_llu#c2.dat', 15)
-default["wavelength"][carbon][2] = {(11, 10): 465.01}
+for element, ionisation, relative_adf_path, download_path in DEFAULT_ADF15_FILES:
+    print(relative_adf_path)
+    _check_for_adf_file(ROOT_DATA_PATH, relative_adf_path, download_path)
+    add_adf15_to_atomic_data(default, element, ionisation, os.path.join(ROOT_DATA_PATH, relative_adf_path))
 
 # TODO: there are concerns about the accuracy of this data
 # Data from NIST Atomic Spectra Database - http://www.nist.gov/pml/data/asd.cfm
 # line emission natural wavelength (in nanometers):
 # config["wavelength"][ion][ionisation][(initial_level, final_level)] = wavelength
-
-
-
-# H0
-default["wavelength"][hydrogen][0] = {
-    (2, 1): 121.57,
-    (3, 1): 102.53,
-    (3, 2): 656.28,
-    (4, 1): 97.21,
-    (4, 2): 486.06,
-    (4, 3): 1875.13,
-    (5, 1): 94.93,
-    (5, 2): 433.99,
-    (5, 3): 1281.61,
-    (5, 4): 4052.28,
-    (6, 1): 93.74,
-    (6, 2): 410.12,
-    (6, 3): 1093.64,
-    (6, 4): 2625.87,
-    (6, 5): 7459.90,
-    (7, 1): 93.04,
-    (7, 2): 396.95,
-    (7, 3): 1004.79,
-    (7, 4): 2165.19,
-    (7, 5): 4651.78,
-    (7, 6): 12366.59,
-    (8, 1): 92.58,
-    (8, 2): 388.85,
-    (8, 3): 954.45,
-    (8, 4): 1944.26,
-    (8, 5): 3738.95,
-    (8, 6): 7499.27,
-    (8, 7): 19053.71,
-    (9, 1): 92.28,
-    (9, 2): 383.49,
-    (9, 3): 922.76,
-    (9, 4): 1817.13,
-    (9, 5): 3295.58,
-    (9, 6): 5905.68,
-    (9, 7): 11303.84,
-    (9, 8): 927791.42,
-    (10, 1): 92.06,
-    (10, 2): 379.74,
-    (10, 3): 901.35,
-    (10, 4): 1735.94,
-    (10, 5): 3037.90,
-    (10, 6): 5126.46,
-    (10, 7): 8756.30,
-    (10, 8): 16202.13,
-    (10, 9): 38853.14,
-    (11, 1): 91.90,
-    (11, 2): 377.01,
-    (11, 3): 886.14,
-    (11, 4): 1680.39,
-    (11, 5): 2871.76,
-    (11, 6): 4670.50,
-    (11, 7): 7504.88,
-    (11, 8): 12381.84,
-    (11, 9): 22330.84,
-    (11, 10): 52512.27,
-    (12, 1): 91.77,
-    (12, 2): 374.96,
-    (12, 3): 874.92,
-    (12, 4): 1640.47,
-    (12, 5): 2757.09,
-    (12, 6): 4374.58,
-    (12, 7): 6769.08,
-    (12, 8): 10498.98,
-    (12, 9): 16873.36,
-    (12, 10): 29826.65,
-    (12, 11): 69042.22
-}
-
-default["wavelength"][protium][0] = {
-    (2, 1): 121.57,
-    (3, 1): 102.53,
-    (3, 2): 656.28,
-    (4, 1): 97.21,
-    (4, 2): 486.06,
-    (4, 3): 1875.13,
-    (5, 1): 94.93,
-    (5, 2): 433.99,
-    (5, 3): 1281.61,
-    (5, 4): 4052.28,
-    (6, 1): 93.74,
-    (6, 2): 410.12,
-    (6, 3): 1093.64,
-    (6, 4): 2625.87,
-    (6, 5): 7459.90,
-    (7, 1): 93.04,
-    (7, 2): 396.95,
-    (7, 3): 1004.79,
-    (7, 4): 2165.19,
-    (7, 5): 4651.78,
-    (7, 6): 12366.59,
-    (8, 1): 92.58,
-    (8, 2): 388.85,
-    (8, 3): 954.45,
-    (8, 4): 1944.26,
-    (8, 5): 3738.95,
-    (8, 6): 7499.27,
-    (8, 7): 19053.71,
-    (9, 1): 92.28,
-    (9, 2): 383.49,
-    (9, 3): 922.76,
-    (9, 4): 1817.13,
-    (9, 5): 3295.58,
-    (9, 6): 5905.68,
-    (9, 7): 11303.84,
-    (9, 8): 927791.42,
-    (10, 1): 92.06,
-    (10, 2): 379.74,
-    (10, 3): 901.35,
-    (10, 4): 1735.94,
-    (10, 5): 3037.90,
-    (10, 6): 5126.46,
-    (10, 7): 8756.30,
-    (10, 8): 16202.13,
-    (10, 9): 38853.14,
-    (11, 1): 91.90,
-    (11, 2): 377.01,
-    (11, 3): 886.14,
-    (11, 4): 1680.39,
-    (11, 5): 2871.76,
-    (11, 6): 4670.50,
-    (11, 7): 7504.88,
-    (11, 8): 12381.84,
-    (11, 9): 22330.84,
-    (11, 10): 52512.27,
-    (12, 1): 91.77,
-    (12, 2): 374.96,
-    (12, 3): 874.92,
-    (12, 4): 1640.47,
-    (12, 5): 2757.09,
-    (12, 6): 4374.58,
-    (12, 7): 6769.08,
-    (12, 8): 10498.98,
-    (12, 9): 16873.36,
-    (12, 10): 29826.65,
-    (12, 11): 69042.22
-}
-
-# TODO - fix these with correct wavelengths
-default["wavelength"][deuterium][0] = {
-    (2, 1): 121.57,
-    (3, 1): 102.53,
-    (3, 2): 656.28,
-    (4, 1): 97.21,
-    (4, 2): 486.06,
-    (4, 3): 1875.13,
-    (5, 1): 94.93,
-    (5, 2): 433.99,
-    (5, 3): 1281.61,
-    (5, 4): 4052.28,
-    (6, 1): 93.74,
-    (6, 2): 410.12,
-    (6, 3): 1093.64,
-    (6, 4): 2625.87,
-    (6, 5): 7459.90,
-    (7, 1): 93.04,
-    (7, 2): 396.95,
-    (7, 3): 1004.79,
-    (7, 4): 2165.19,
-    (7, 5): 4651.78,
-    (7, 6): 12366.59,
-    (8, 1): 92.58,
-    (8, 2): 388.85,
-    (8, 3): 954.45,
-    (8, 4): 1944.26,
-    (8, 5): 3738.95,
-    (8, 6): 7499.27,
-    (8, 7): 19053.71,
-    (9, 1): 92.28,
-    (9, 2): 383.49,
-    (9, 3): 922.76,
-    (9, 4): 1817.13,
-    (9, 5): 3295.58,
-    (9, 6): 5905.68,
-    (9, 7): 11303.84,
-    (9, 8): 927791.42,
-    (10, 1): 92.06,
-    (10, 2): 379.74,
-    (10, 3): 901.35,
-    (10, 4): 1735.94,
-    (10, 5): 3037.90,
-    (10, 6): 5126.46,
-    (10, 7): 8756.30,
-    (10, 8): 16202.13,
-    (10, 9): 38853.14,
-    (11, 1): 91.90,
-    (11, 2): 377.01,
-    (11, 3): 886.14,
-    (11, 4): 1680.39,
-    (11, 5): 2871.76,
-    (11, 6): 4670.50,
-    (11, 7): 7504.88,
-    (11, 8): 12381.84,
-    (11, 9): 22330.84,
-    (11, 10): 52512.27,
-    (12, 1): 91.77,
-    (12, 2): 374.96,
-    (12, 3): 874.92,
-    (12, 4): 1640.47,
-    (12, 5): 2757.09,
-    (12, 6): 4374.58,
-    (12, 7): 6769.08,
-    (12, 8): 10498.98,
-    (12, 9): 16873.36,
-    (12, 10): 29826.65,
-    (12, 11): 69042.22
-}
-# TODO - fix these with correct wavelengths
-default["wavelength"][tritium][0] = {
-    (2, 1): 121.57,
-    (3, 1): 102.53,
-    (3, 2): 656.28,
-    (4, 1): 97.21,
-    (4, 2): 486.06,
-    (4, 3): 1875.13,
-    (5, 1): 94.93,
-    (5, 2): 433.99,
-    (5, 3): 1281.61,
-    (5, 4): 4052.28,
-    (6, 1): 93.74,
-    (6, 2): 410.12,
-    (6, 3): 1093.64,
-    (6, 4): 2625.87,
-    (6, 5): 7459.90,
-    (7, 1): 93.04,
-    (7, 2): 396.95,
-    (7, 3): 1004.79,
-    (7, 4): 2165.19,
-    (7, 5): 4651.78,
-    (7, 6): 12366.59,
-    (8, 1): 92.58,
-    (8, 2): 388.85,
-    (8, 3): 954.45,
-    (8, 4): 1944.26,
-    (8, 5): 3738.95,
-    (8, 6): 7499.27,
-    (8, 7): 19053.71,
-    (9, 1): 92.28,
-    (9, 2): 383.49,
-    (9, 3): 922.76,
-    (9, 4): 1817.13,
-    (9, 5): 3295.58,
-    (9, 6): 5905.68,
-    (9, 7): 11303.84,
-    (9, 8): 927791.42,
-    (10, 1): 92.06,
-    (10, 2): 379.74,
-    (10, 3): 901.35,
-    (10, 4): 1735.94,
-    (10, 5): 3037.90,
-    (10, 6): 5126.46,
-    (10, 7): 8756.30,
-    (10, 8): 16202.13,
-    (10, 9): 38853.14,
-    (11, 1): 91.90,
-    (11, 2): 377.01,
-    (11, 3): 886.14,
-    (11, 4): 1680.39,
-    (11, 5): 2871.76,
-    (11, 6): 4670.50,
-    (11, 7): 7504.88,
-    (11, 8): 12381.84,
-    (11, 9): 22330.84,
-    (11, 10): 52512.27,
-    (12, 1): 91.77,
-    (12, 2): 374.96,
-    (12, 3): 874.92,
-    (12, 4): 1640.47,
-    (12, 5): 2757.09,
-    (12, 6): 4374.58,
-    (12, 7): 6769.08,
-    (12, 8): 10498.98,
-    (12, 9): 16873.36,
-    (12, 10): 29826.65,
-    (12, 11): 69042.22
-}
 
 
 # He1+
