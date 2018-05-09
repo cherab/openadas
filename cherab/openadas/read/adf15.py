@@ -20,17 +20,6 @@ import numpy as np
 from cherab.core.atomic import hydrogen
 
 
-PEC_INDEX_HEADER_MATCH = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
-CONFIGURATION_HEADER_MATCH = '^C\s*Configuration\s*\(2S\+1\)L\(w-1/2\)\s*Energy \(cm\*\*-1\)$'
-
-CONFIGURATION_STRING_MATCH = "^C\s*([0-9]*)\s*((?:[0-9][SPDFG][0-9]\s)*)\s*\(([0-9]*\.?[0-9]*)\)([0-9]*)\(\s*([0-9]*\.?[0-9]*)\)"
-
-PEC_N_TRANSITION_MATCH = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9])\s*N=\s*([0-9]*).*N=\s*([0-9]*)\s*([A-Z]*)$'
-PEC_HYDROGEN_TRANSITION_MATCH = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*N=\s*([0-9]*) - N=\s*([0-9]*)\s*([A-Z]*)'
-PEC_FULL_TRANSITION_MATCH = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9])\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
-WAVELENGTH_MATCH = '^\s*[0-9]*\.[0-9] ?A .*$'
-BLOCK_ID_MATCH = '^\s*[0-9]*\.[0-9] ?A\s*([0-9]*)\s*([0-9]*).*/TYPE = ([a-zA-Z]*).*/ISEL *= * ([0-9]*)$'
-
 _L_LOOKUP = {
     0: 'S',
     1: 'P',
@@ -57,13 +46,47 @@ def add_adf15_to_atomic_data(atomic_data_dictionary, element, ionisation, adf_fi
     # Use simple electron configuration structure for hydrogen
     if element == hydrogen:
 
-        while not re.match(PEC_INDEX_HEADER_MATCH, lines[0]):
+        pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
+        while not re.match(pec_index_header_match, lines[0]):
             lines.pop(0)
         index_lines = lines
 
         for i in range(len(index_lines)):
 
-            match = re.match(PEC_HYDROGEN_TRANSITION_MATCH, index_lines[i])
+            pec_hydrogen_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*N=\s*([0-9]*) - N=\s*([0-9]*)\s*([A-Z]*)'
+            match = re.match(pec_hydrogen_transition_match, index_lines[i])
+            if not match:
+                continue
+
+            block_num = int(match.groups()[0])
+            wavelength = float(match.groups()[1])/10
+            upper_level = int(match.groups()[2])
+            lower_level = int(match.groups()[3])
+            rate_type_adas = match.groups()[4]
+            if rate_type_adas == 'EXCIT':
+                rate_type = 'excitation'
+            elif rate_type_adas == 'RECOM':
+                rate_type = 'recombination'
+            elif rate_type_adas == 'CHEXC':
+                rate_type = 'cx_thermal'
+            else:
+                raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
+
+            atomic_data_dictionary[rate_type][element][ionisation][(upper_level, lower_level)] = (adf_file_path, block_num)
+            atomic_data_dictionary["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+
+    # Use simple electron configuration structure for hydrogen-like ions
+    elif element.atomic_number - ionisation == 1:
+
+        pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
+        while not re.match(pec_index_header_match, lines[0]):
+            lines.pop(0)
+        index_lines = lines
+
+        for i in range(len(index_lines)):
+
+            pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9])\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
+            match = re.match(pec_full_transition_match, index_lines[i])
             if not match:
                 continue
 
@@ -90,16 +113,19 @@ def add_adf15_to_atomic_data(atomic_data_dictionary, element, ionisation, adf_fi
         configuration_lines = []
         configuration_dict = {}
 
-        while not re.match(CONFIGURATION_HEADER_MATCH, lines[0]):
+        configuration_header_match = '^C\s*Configuration\s*\(2S\+1\)L\(w-1/2\)\s*Energy \(cm\*\*-1\)$'
+        while not re.match(configuration_header_match, lines[0]):
             lines.pop(0)
-        while not re.match(PEC_INDEX_HEADER_MATCH, lines[0]):
+        pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
+        while not re.match(pec_index_header_match, lines[0]):
             configuration_lines.append(lines[0])
             lines.pop(0)
         index_lines = lines
 
         for i in range(len(configuration_lines)):
 
-            match = re.match(CONFIGURATION_STRING_MATCH, configuration_lines[i])
+            configuration_string_match = "^C\s*([0-9]*)\s*((?:[0-9][SPDFG][0-9]\s)*)\s*\(([0-9]*\.?[0-9]*)\)([0-9]*)\(\s*([0-9]*\.?[0-9]*)\)"
+            match = re.match(configuration_string_match, configuration_lines[i])
             if not match:
                 continue
 
@@ -114,7 +140,8 @@ def add_adf15_to_atomic_data(atomic_data_dictionary, element, ionisation, adf_fi
 
         for i in range(len(index_lines)):
 
-            match = re.match(PEC_FULL_TRANSITION_MATCH, index_lines[i])
+            pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9])\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
+            match = re.match(pec_full_transition_match, index_lines[i])
             if not match:
                 continue
 
@@ -153,12 +180,13 @@ def _group_by_block(source_file, match_string):
     yield buffer
 
 
-# TODO - re-add optional validation
 def adf15(file_name, block_num):
 
+    wavelength_match = '^\s*[0-9]*\.[0-9] ?A .*$'
+    block_id_match = '^\s*[0-9]*\.[0-9] ?A\s*([0-9]*)\s*([0-9]*).*/TYPE = ([a-zA-Z]*).*/ISEL *= * ([0-9]*)$'
     with open(file_name, "r") as adf15_file:
-        for block in _group_by_block(adf15_file, WAVELENGTH_MATCH):
-            match = re.match(BLOCK_ID_MATCH, block[0])
+        for block in _group_by_block(adf15_file, wavelength_match):
+            match = re.match(block_id_match, block[0])
 
             if not match:
                 continue
