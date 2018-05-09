@@ -15,7 +15,6 @@
 # under the Licence.
 
 import os
-import urllib.request
 
 from cherab.core import AtomicData
 from cherab.core.atomic.elements import Isotope
@@ -27,6 +26,7 @@ from cherab.openadas.read import adf11, adf12, adf15, adf21, adf22
 from cherab.openadas.read.adf15 import add_adf15_to_atomic_data
 from .rates import *
 from cherab.openadas.rates.radiated_power import StageResolvedRadiation
+from cherab.openadas.utilities import check_for_adf_file
 
 
 class OpenADAS(AtomicData):
@@ -116,7 +116,7 @@ class OpenADAS(AtomicData):
 
                 for file in library_files:
                     donor_metastable, adas_path, download_path = file
-                    adf_file_path = self._check_for_adf_file(adas_path, download_path)
+                    adf_file_path = check_for_adf_file(adas_path, download_path)
                     self.add_adf12_file(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, adf_file_path)
                 data = self._adf12_config[donor_ion][receiver_ion][receiver_ionisation]
             except KeyError:
@@ -150,7 +150,7 @@ class OpenADAS(AtomicData):
             # If not found in current configuration try the Open-ADAS library files.
             try:
                 adas_path, download_path = ADF21_BMS_FILES[beam_ion][plasma_ion][ionisation]
-                adf_file_path = self._check_for_adf_file(adas_path, download_path)
+                adf_file_path = check_for_adf_file(adas_path, download_path)
                 self.add_adf21_file(beam_ion, plasma_ion, ionisation, adf_file_path)
                 filename = self._adf21_config[beam_ion][plasma_ion][ionisation]
             except KeyError:
@@ -178,7 +178,7 @@ class OpenADAS(AtomicData):
             # If not found in current configuration try the Open-ADAS library files.
             try:
                 adas_path, download_path = ADF22_BMP_FILES[beam_ion][metastable][plasma_ion][ionisation]
-                adf_file_path = self._check_for_adf_file(adas_path, download_path)
+                adf_file_path = check_for_adf_file(adas_path, download_path)
                 self.add_adf22_bmp_file(beam_ion, metastable, plasma_ion, ionisation, adf_file_path)
                 filename = self._adf22_bmp_config[beam_ion][metastable][plasma_ion][ionisation]
             except KeyError:
@@ -207,7 +207,7 @@ class OpenADAS(AtomicData):
             # If not found in current configuration try the Open-ADAS library files.
             try:
                 adas_path, download_path = ADF22_BME_FILES[beam_ion][plasma_ion][ionisation][transition]
-                adf_file_path = self._check_for_adf_file(adas_path, download_path)
+                adf_file_path = check_for_adf_file(adas_path, download_path)
                 self.add_adf22_bme_file(beam_ion, plasma_ion, ionisation, transition, adf_file_path)
                 filename = self._adf22_bmp_config[beam_ion][plasma_ion][ionisation][transition]
             except KeyError:
@@ -233,7 +233,7 @@ class OpenADAS(AtomicData):
             # If not found in current configuration try the Open-ADAS library files.
             try:
                 library_file = ADF15_PEC_FILES[ion][ionisation]
-                adf_file_path = self._check_for_adf_file(library_file['ADAS_Path'], library_file['Download_URL'])
+                adf_file_path = check_for_adf_file(library_file['ADAS_Path'], library_file['Download_URL'])
                 self.add_adf15_file(ion, ionisation, adf_file_path)
                 filename, block_number = self._adf15_config["excitation"][ion][ionisation][transition]
                 wavelength = self._adf15_config["wavelength"][ion][ionisation][transition]
@@ -262,7 +262,7 @@ class OpenADAS(AtomicData):
             # If not found in current configuration try the Open-ADAS library files.
             try:
                 library_file = ADF15_PEC_FILES[ion][ionisation]
-                adf_file_path = self._check_for_adf_file(library_file['ADAS_Path'], library_file['Download_URL'])
+                adf_file_path = check_for_adf_file(library_file['ADAS_Path'], library_file['Download_URL'])
                 self.add_adf15_file(ion, ionisation, adf_file_path)
                 filename, block_number = self._adf15_config["recombination"][ion][ionisation][transition]
                 wavelength = self._adf15_config["wavelength"][ion][ionisation][transition]
@@ -287,7 +287,7 @@ class OpenADAS(AtomicData):
         except KeyError:
             raise ValueError("No ADF11 files set for Ion - {}".format(ion.symbol))
 
-        absolute_file_path = self._check_for_adf_file(plt_files['ADAS_Path'], plt_files['Download_URL'])
+        absolute_file_path = check_for_adf_file(plt_files['ADAS_Path'], plt_files['Download_URL'])
 
         densities, temperatures, rate_data = adf11(absolute_file_path, ion, ionisation)
 
@@ -306,7 +306,7 @@ class OpenADAS(AtomicData):
         except KeyError:
             raise ValueError("No ADF11 files set for Ion - {}".format(ion.symbol))
 
-        absolute_file_path = self._check_for_adf_file(prb_files['ADAS_Path'], prb_files['Download_URL'])
+        absolute_file_path = check_for_adf_file(prb_files['ADAS_Path'], prb_files['Download_URL'])
 
         densities, temperatures, rate_data = adf11(absolute_file_path, ion, ionisation)
 
@@ -314,24 +314,6 @@ class OpenADAS(AtomicData):
 
         return StageResolvedRadiation(ion, ionisation, densities, temperatures, rate_data,
                                       name=name, extrapolate=self._permit_extrapolation)
-
-    def _check_for_adf_file(self, relative_adf_file_path, download_path):
-
-        relative_adf_directory, adf_file_name = os.path.split(relative_adf_file_path)
-        absolute_adf_directory = os.path.join(self._data_path, relative_adf_directory)
-        absolute_file_path = os.path.join(absolute_adf_directory, adf_file_name)
-
-        if not os.path.exists(absolute_adf_directory):
-            os.makedirs(absolute_adf_directory)
-
-        if os.path.isfile(absolute_file_path):
-            return absolute_file_path
-        else:
-            # TODO - catch urllib exceptions and return nicer error to user
-            print("Downloading ADF file - '{}' to '~/.cherab/openadas'".format(relative_adf_file_path))
-            urllib.request.urlretrieve(download_path, absolute_file_path)
-
-        return absolute_file_path
 
     def add_adf12_file(self, donor_ion, receiver_ion, receiver_ionisation, donor_metastable, adf_file_path):
 
