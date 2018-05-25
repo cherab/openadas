@@ -19,10 +19,10 @@ from cherab.core.atomic.elements import hydrogen, helium, lithium, beryllium, bo
     nitrogen, oxygen, fluorine, neon
 
 
+# Recommended set of ADF21 files for beam stopping coefficients.
+# config[beam_species][target_ion][target_ionisation] = coefficient
 ADF21_BMS_FILES = {
 
-    "description": "Recommended set of ADF21 files for beam stopping coefficients. "
-                   "config[beam_species][target_ion][target_ionisation] = coefficient",
     # beam_species
     hydrogen: {
         hydrogen: {  # H -> H1+

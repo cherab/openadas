@@ -15,8 +15,4 @@
 # under the Licence.
 
 from .wavelengths import wavelength_database
-from .adf12 import ADF12_CXS_FILES
-from .adf15 import ADF15_PEC_FILES
-from .adf21 import ADF21_BMS_FILES
-from .adf22 import ADF22_BMP_FILES, ADF22_BME_FILES
-from .library import ADF11_PLT_FILES, ADF11_PRB_FILES
+from .library import DEFAULT_ADAS_CONFIG

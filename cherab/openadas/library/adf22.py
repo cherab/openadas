@@ -20,13 +20,10 @@ from cherab.core.atomic.elements import hydrogen, helium, lithium, beryllium, bo
     nitrogen, oxygen, fluorine, neon, argon
 
 
-# beam population coefficients:
-# config["bmp"][beam_species][beam_metastable][target_ion][target_ionisation] = coefficient
+# Recommended set of ADF22 files for beam population coefficients.
+# config[beam_species][beam_metastable][target_ion][target_ionisation] = coefficient"
 
 ADF22_BMP_FILES = RecursiveDict()
-
-ADF22_BMP_FILES["description"] = "Recommended set of ADF22 files for beam population coefficients. " \
-                                 "config[beam_species][beam_metastable][target_ion][target_ionisation] = coefficient"
 
 # H(m=2) -> H1+
 ADF22_BMP_FILES[hydrogen][2][hydrogen][1] = ("adf22/bmp97#h/bmp97#h_2_h1.dat", "http://open.adas.ac.uk/download/adf22/bmp97][h/bmp97][h_2_h1.dat")
@@ -107,13 +104,10 @@ ADF22_BMP_FILES[hydrogen][3][neon][10] = ("adf22/bmp97#h/bmp97#h_3_ne10.dat", "h
 ADF22_BMP_FILES[hydrogen][4][neon][10] = ("adf22/bmp97#h/bmp97#h_4_ne10.dat", "http://open.adas.ac.uk/download/adf22/bmp97][h/bmp97][h_4_ne10.dat")
 
 
-# beam emission coefficients:
-# config["bme"][beam_species][target_ion][target_ionisation][(initial_level, final_level)] = coefficient
+# Recommended set of ADF22 files for beam emission coefficients.
+# config[beam_species][target_ion][target_ionisation][(initial_level, final_level)] = coefficient"
 
 ADF22_BME_FILES = RecursiveDict()
-
-ADF22_BME_FILES["description"] = "Recommended set of ADF22 files for beam emission coefficients. " \
-                                 "config[beam_species][target_ion][target_ionisation][(initial_level, final_level)] = coefficient"
 
 # H0(n=3) + H+ -> H0(n=2) + H+ + hv (656.28 nm)
 ADF22_BME_FILES[hydrogen][1][hydrogen][(3, 2)] = ("adf22/bme10#h/bme10#h_h1.dat", "http://open.adas.ac.uk/download/adf22/bme10][h/bme10][h_h1.dat")

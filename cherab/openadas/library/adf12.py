@@ -18,11 +18,10 @@
 from cherab.core.atomic.elements import hydrogen, helium, beryllium, boron, carbon, neon
 
 
+# Recommended set of ADF12 files for Beam-CX emission rate coefficients.
+# config[donor_species][receiver_ion][receiver_ionisation] = [([donor_metastable], rate_file, download_path), ...]
 ADF12_CXS_FILES = {
 
-    "description": "Recommended set of ADF12 files for Beam-CX emission rate coefficients. "
-                   "config[donor_species][receiver_ion][receiver_ionisation] = "
-                   "[([donor_metastable], rate_file, download_path), ...]",
     # donor_species
     hydrogen: {
 
