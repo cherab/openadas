@@ -15,4 +15,4 @@
 # under the Licence.
 
 from .wavelengths import wavelength_database
-from .library import DEFAULT_ADAS_CONFIG
+from .library import default_adas_config
