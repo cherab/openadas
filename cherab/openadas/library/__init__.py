@@ -14,5 +14,5 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-
-from .library import ADF11_PLT_FILES, ADF11_PRB_FILES
+from .wavelengths import wavelength_database
+from .library import default_adas_config
