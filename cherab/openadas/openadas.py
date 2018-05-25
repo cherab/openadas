@@ -237,7 +237,9 @@ class OpenADAS(AtomicData):
                 self.add_adf15_file(ion, ionisation, adf_file_path)
                 filename, block_number = self._adf15_config["excitation"][ion][ionisation][transition]
                 wavelength = self._adf15_config["wavelength"][ion][ionisation][transition]
-                self._wavelength_list[ion][ionisation][transition] = wavelength
+                wavelength_config = RecursiveDict.from_dict(self._wavelength_list)
+                wavelength_config[ion][ionisation][transition] = wavelength
+                self._wavelength_list = wavelength_config.freeze()
             except KeyError:
                 raise RuntimeError("The requested impact excitation rate data does not have an entry in the "
                                    "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
@@ -266,7 +268,9 @@ class OpenADAS(AtomicData):
                 self.add_adf15_file(ion, ionisation, adf_file_path)
                 filename, block_number = self._adf15_config["recombination"][ion][ionisation][transition]
                 wavelength = self._adf15_config["wavelength"][ion][ionisation][transition]
-                self._wavelength_list[ion][ionisation][transition] = wavelength
+                wavelength_config = RecursiveDict.from_dict(self._wavelength_list)
+                wavelength_config[ion][ionisation][transition] = wavelength
+                self._wavelength_list = wavelength_config.freeze()
             except KeyError:
                 raise RuntimeError("The requested recombination rate data does not have an entry in the "
                                    "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
