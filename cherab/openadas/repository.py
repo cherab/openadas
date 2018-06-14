@@ -16,6 +16,8 @@
 
 import os
 import urllib
+import json
+from cherab.core.utility import RecursiveDict
 from cherab.openadas.read import *
 
 """
@@ -63,14 +65,17 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
     :return:
     """
 
+    print('Installing {}...'.format(file_path))
     path = _locate_adas_file(file_path, download, adas_path)
     if not path:
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
     rates, wavelengths = read_adf15(element, ionisation, path)
+    update_pec_rates(rates, repository_path)
+    # todo: update_wavelengths(wavelengths, repository_path)
 
-    # TODO: WRITE OUT NEW INTERNAL STYLE DATA
+    print(' - installed!')
 
 
 def _locate_adas_file(file_path, download=False, adas_path=None):
@@ -98,13 +103,79 @@ def _locate_adas_file(file_path, download=False, adas_path=None):
                 os.makedirs(directory)
 
             # TODO: move to logging?
-            print("Downloading ADF file - '{}' to '{}'".format(file_path, target))
+            print(" - downloading ADF file '{}' to '{}'".format(file_path, target))
 
             url = urllib.parse.urljoin(OPENADAS_FILE_URL, file_path.replace('#', '][').lstrip('/'))
             urllib.request.urlretrieve(url, target)
             path = target
 
     return path
+
+
+def add_pec_rate(cls, element, ionisation, te, ne, rate):
+    pass
+
+
+def update_pec_rates(rates, repository_path=None):
+    """
+    PEC rate file structure
+
+    /pec/CLASS/ELEMENT/IONISATION.json
+    """
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+
+    for cls, elements in rates.items():
+        for element, ionisations in elements.items():
+            for ionisation, transitions in ionisations.items():
+
+                # todo: validate class, element, ionisation and rate data
+
+                path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), ionisation))
+
+                # read in any existing rates
+                try:
+                    with open(path, 'r') as f:
+                        content = RecursiveDict.from_dict(json.load(f))
+                except FileNotFoundError:
+                    content = RecursiveDict()
+
+                # add/replace data for a transition
+                for transition in transitions:
+                    key = _encode_transition(transition)
+                    data = rates[cls][element][ionisation][transition]
+                    content[key] = {
+                        'te': data['te'].tolist(),
+                        'ne': data['ne'].tolist(),
+                        'rate': data['rate'].tolist()
+                    }
+
+                # create directory structure if missing
+                directory = os.path.dirname(path)
+                if not os.path.isdir(directory):
+                    os.makedirs(directory)
+
+                # read in any existing rates
+                with open(path, 'w') as f:
+                    json.dump(content, f, indent=2, sort_keys=True)
+
+
+def _encode_transition(transition):
+    """
+    Generate a key string from a transition.
+
+    Both integer and string transition descriptions are handled.
+    """
+
+    upper, lower = transition
+
+    upper = str(upper).lower()
+    lower = str(lower).lower()
+
+    return '{} -> {}'.format(upper, lower)
+
+
+
 
 
 
