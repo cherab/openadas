@@ -19,6 +19,7 @@ import re
 import numpy as np
 from cherab.core.atomic import hydrogen
 from cherab.core.utility import RecursiveDict
+from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3
 
 
 _L_LOOKUP = {
@@ -37,8 +38,6 @@ _L_LOOKUP = {
     12: 'Q',
     13: 'R',
 }
-
-from pprint import pprint
 
 
 def read_adf15(element, ionisation, adf_file_path):
@@ -84,7 +83,7 @@ def _scrape_metadata(file, element, ionisation):
                 continue
 
             block_num = int(match.groups()[0])
-            wavelength = float(match.groups()[1])/10
+            wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
             upper_level = int(match.groups()[2])
             lower_level = int(match.groups()[3])
             rate_type_adas = match.groups()[4]
@@ -116,7 +115,7 @@ def _scrape_metadata(file, element, ionisation):
                 continue
 
             block_num = int(match.groups()[0])
-            wavelength = float(match.groups()[1])/10
+            wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
             upper_level = int(match.groups()[2])
             lower_level = int(match.groups()[3])
             rate_type_adas = match.groups()[4]
@@ -171,7 +170,7 @@ def _scrape_metadata(file, element, ionisation):
                 continue
 
             block_num = int(match.groups()[0])
-            wavelength = float(match.groups()[1])/10
+            wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
             upper_level_id = int(match.groups()[2])
             upper_level = configuration_dict[upper_level_id]
             lower_level_id = int(match.groups()[3])
@@ -192,7 +191,6 @@ def _scrape_metadata(file, element, ionisation):
     return config
 
 
-# TODO: add unit conversions
 def _extract_rate(file, block_num):
 
     # search from start of file
@@ -250,12 +248,14 @@ def _extract_rate(file, block_num):
             rates = np.array(rates)
             rates = rates.reshape((num_n, num_t))
 
-            # TODO: UNIT CONVERSION
+            # convert units from cm^-3 to m^-3
+            density = PerCm3ToPerM3.to(density)
+            rates = Cm3ToM3.to(rates)
 
             return {'ne': density, 'te': temperature, 'rate': rates}
 
     # If code gets to here, block wasn't found.
-    raise RuntimeError('Block number {} was not found in ADF15 file.'.format(block_num))
+    raise RuntimeError('Block number {} was not found in the ADF15 file.'.format(block_num))
 
 
 # Group lines of file into blocks based on precursor '  6561.9A   24...'

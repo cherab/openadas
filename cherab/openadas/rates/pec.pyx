@@ -18,7 +18,7 @@ import numpy as np
 cimport numpy as np
 import matplotlib.pyplot as plt
 
-from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3, PhotonToJ
+from cherab.core.utility.conversion import PhotonToJ
 
 
 cdef class ImpactExcitationRate(CoreImpactExcitationRate):
@@ -32,12 +32,8 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
         :param extrapolate: Enable extrapolation (default=False).
         """
 
-        # TODO: move conversion to repository construction
         # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
-        # te = rate_data["TE"]                                            # eV
-        # ne = PerCm3ToPerM3.to(rate_data["DENS"])                        # m^-3
-        # rate = Cm3ToM3.to(rate)
-        rate = PhotonToJ.to(rate, wavelength)                 # W.m^3
+        rate = PhotonToJ.to(rate, wavelength)
 
         # store limits of data
         self.density_range = ne.min(), ne.max()
@@ -65,12 +61,8 @@ cdef class RecombinationRate(CoreRecombinationRate):
         :param extrapolate: Enable extrapolation (default=False).
         """
 
-        # TODO: move conversion to repository construction
         # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
-        # te = rate_data["TE"]                                            # eV
-        # ne = PerCm3ToPerM3.to(rate_data["DENS"])                        # m^-3
-        # Cm3ToM3.to(rate)
-        rate = PhotonToJ.to(rate, wavelength)              # W.m^3
+        rate = PhotonToJ.to(rate, wavelength)
 
         # store limits of data
         self.density_range = ne.min(), ne.max()
