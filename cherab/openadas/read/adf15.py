@@ -52,7 +52,6 @@ def read_adf15(element, ionisation, adf_file_path):
             for ionisation, transitions in ionisations.items():
                 for transition in transitions.keys():
                     block_num = config[cls][element][ionisation][transition]
-                    print(cls, element, ionisation, transition, block_num)
                     rates[cls][element][ionisation][transition] = _extract_rate(file, block_num)
 
     wavelengths = config['wavelength']
