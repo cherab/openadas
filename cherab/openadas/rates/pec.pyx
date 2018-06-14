@@ -15,72 +15,77 @@
 # under the Licence.
 
 import numpy as np
+cimport numpy as np
 import matplotlib.pyplot as plt
 
 from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3, PhotonToJ
 
-from libc.math cimport log10
 
-
-# todo: evaluate it the interpolation can be done without the log10 operations? or if this should be ported to the cx rates.
 cdef class ImpactExcitationRate(CoreImpactExcitationRate):
 
-    def __init__(self, double wavelength, dict rate_data, extrapolate=False):
+    def __init__(self, double wavelength, np.ndarray te, np.ndarray ne, np.ndarray rate, extrapolate=False):
+        """
+        :param wavelength: Resting wavelength of corresponding emission line in nm.
+        :param te: Electron temperature range in eV.
+        :param ne: Electron density range in m^-3.
+        :param rate: PEC rate in photons.m^3.
+        :param extrapolate: Enable extrapolation (default=False).
+        """
 
-        self.raw_data = rate_data
-
+        # TODO: move conversion to repository construction
         # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
-        te = rate_data["TE"]                                            # eV
-        ne = PerCm3ToPerM3.to(rate_data["DENS"])                        # m^-3
-        pec = PhotonToJ.to(Cm3ToM3.to(rate_data["PEC"]), wavelength)    # W.m^3
+        # te = rate_data["TE"]                                            # eV
+        # ne = PerCm3ToPerM3.to(rate_data["DENS"])                        # m^-3
+        # rate = Cm3ToM3.to(rate)
+        rate = PhotonToJ.to(rate, wavelength)                 # W.m^3
 
+        # store limits of data
         self.density_range = ne.min(), ne.max()
         self.temperature_range = te.min(), te.max()
 
-        self._pec = Interpolate2DCubic(
-            ne, te, pec, extrapolate=extrapolate, extrapolation_type="quadratic"
+        # interpolate rate
+        self._rate = Interpolate2DCubic(
+            ne, te, rate, extrapolate=extrapolate, extrapolation_type="quadratic"
         )
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
 
-        cdef double rate
-
-        rate = self._pec.evaluate(density, temperature)
-        if rate < 0:
-            return 0.0
-
-        return rate
+        # prevent -ve values (possible if extrapolation enabled)
+        return max(0, self._rate.evaluate(density, temperature))
 
 
-# todo: evaluate it the interpolation can be done without the log10 operations? or if this should be ported to the cx rates.
 cdef class RecombinationRate(CoreRecombinationRate):
 
-    def __init__(self, double wavelength, dict rate_data, extrapolate=False):
+    def __init__(self, double wavelength, np.ndarray te, np.ndarray ne, np.ndarray rate, extrapolate=False):
+        """
+        :param wavelength: Resting wavelength of corresponding emission line in nm.
+        :param te: Electron temperature range in eV.
+        :param ne: Electron density range in m^-3.
+        :param rate: PEC rate in photons.m^3.
+        :param extrapolate: Enable extrapolation (default=False).
+        """
 
-        self.raw_data = rate_data
-
+        # TODO: move conversion to repository construction
         # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
-        te = rate_data["TE"]                                            # eV
-        ne = PerCm3ToPerM3.to(rate_data["DENS"])                        # m^-3
-        pec = PhotonToJ.to(Cm3ToM3.to(rate_data["PEC"]), wavelength)    # W.m^3
+        # te = rate_data["TE"]                                            # eV
+        # ne = PerCm3ToPerM3.to(rate_data["DENS"])                        # m^-3
+        # Cm3ToM3.to(rate)
+        rate = PhotonToJ.to(rate, wavelength)              # W.m^3
 
+        # store limits of data
         self.density_range = ne.min(), ne.max()
         self.temperature_range = te.min(), te.max()
 
-        self._pec = Interpolate2DCubic(
-            ne, te, pec, extrapolate=extrapolate, extrapolation_type="quadratic"
+        # interpolate rate
+        self._rate = Interpolate2DCubic(
+            ne, te, rate, extrapolate=extrapolate, extrapolation_type="quadratic"
         )
 
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
 
-        cdef double rate
-
-        rate = self._pec.evaluate(density, temperature)
-        if rate < 0:
-            return 0.0
-
-        return rate
+        # prevent -ve values (possible if extrapolation enabled)
+        return max(0, self._rate.evaluate(density, temperature))
 
 
 # cdef class ThermalCXRate(CoreThermalCXRate):

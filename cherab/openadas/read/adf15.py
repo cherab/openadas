@@ -18,6 +18,7 @@
 import re
 import numpy as np
 from cherab.core.atomic import hydrogen
+from cherab.core.utility import RecursiveDict
 
 
 _L_LOOKUP = {
@@ -37,11 +38,35 @@ _L_LOOKUP = {
     13: 'R',
 }
 
+from pprint import pprint
 
-def add_adf15_to_atomic_data(atomic_data_dictionary, element, ionisation, adf_file_path):
 
-    adf15_file = open(adf_file_path, "r")
-    lines = adf15_file.readlines()
+def read_adf15(element, ionisation, adf_file_path):
+
+    file = open(adf_file_path, "r")
+    config = _scrape_metadata(file, element, ionisation)
+
+    # process rate data
+    rates = RecursiveDict()
+    for cls in ('excitation', 'recombination', 'cx_thermal'):
+        for element, ionisations in config[cls].items():
+            for ionisation, transitions in ionisations.items():
+                for transition in transitions.keys():
+                    block_num = config[cls][element][ionisation][transition]
+                    print(cls, element, ionisation, transition, block_num)
+                    rates[cls][element][ionisation][transition] = _extract_rate(file, block_num)
+
+    wavelengths = config['wavelength']
+    return rates, wavelengths
+
+
+def _scrape_metadata(file, element, ionisation):
+
+    config = RecursiveDict()
+
+    # start parsing from the beginning
+    file.seek(0)
+    lines = file.readlines()
 
     # Use simple electron configuration structure for hydrogen
     if element == hydrogen:
@@ -72,8 +97,8 @@ def add_adf15_to_atomic_data(atomic_data_dictionary, element, ionisation, adf_fi
             else:
                 raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
 
-            atomic_data_dictionary[rate_type][element][ionisation][(upper_level, lower_level)] = (adf_file_path, block_num)
-            atomic_data_dictionary["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
+            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
 
     # Use simple electron configuration structure for hydrogen-like ions
     elif element.atomic_number - ionisation == 1:
@@ -104,8 +129,8 @@ def add_adf15_to_atomic_data(atomic_data_dictionary, element, ionisation, adf_fi
             else:
                 raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
 
-            atomic_data_dictionary[rate_type][element][ionisation][(upper_level, lower_level)] = (adf_file_path, block_num)
-            atomic_data_dictionary["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
+            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
 
     # Use full electron configuration structure for anything else
     else:
@@ -161,10 +186,76 @@ def add_adf15_to_atomic_data(atomic_data_dictionary, element, ionisation, adf_fi
             else:
                 raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
 
-            atomic_data_dictionary[rate_type][element][ionisation][(upper_level, lower_level)] = (adf_file_path, block_num)
-            atomic_data_dictionary["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
+            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
 
-    return atomic_data_dictionary
+    return config
+
+
+# TODO: add unit conversions
+def _extract_rate(file, block_num):
+
+    # search from start of file
+    file.seek(0)
+
+    wavelength_match = '^\s*[0-9]*\.[0-9] ?A .*$'
+    block_id_match = '^\s*[0-9]*\.[0-9] ?A\s*([0-9]*)\s*([0-9]*).*/TYPE = ([a-zA-Z]*).*/ISEL *= * ([0-9]*)$'
+
+    for block in _group_by_block(file, wavelength_match):
+        match = re.match(block_id_match, block[0])
+
+        if not match:
+            continue
+
+        if int(match.groups()[3]) == block_num:
+            # get number of n, T and rate data points:
+            num_n = int(match.groups()[0])
+            num_t = int(match.groups()[1])
+            num_r = num_n * num_t
+
+            block.pop(0)
+
+            # Load density values
+            nn = 0
+            density = []
+            while nn != num_n:
+                next_line = block.pop(0)
+                components = next_line.split()
+                for value in components:
+                    nn += 1
+                    density.append(float(value))
+
+            # Load temperature values
+            nt = 0
+            temperature = []
+            while nt != num_t:
+                next_line = block.pop(0)
+                components = next_line.split()
+                for value in components:
+                    nt += 1
+                    temperature.append(float(value))
+
+            # Load rate values
+            nr = 0
+            rates = []
+            while nr != num_r:
+                next_line = block.pop(0)
+                components = next_line.split()
+                for value in components:
+                    nr += 1
+                    rates.append(float(value))
+
+            density = np.array(density)
+            temperature = np.array(temperature)
+            rates = np.array(rates)
+            rates = rates.reshape((num_n, num_t))
+
+            # TODO: UNIT CONVERSION
+
+            return {'ne': density, 'te': temperature, 'rate': rates}
+
+    # If code gets to here, block wasn't found.
+    raise RuntimeError('Block number {} was not found in ADF15 file.'.format(block_num))
 
 
 # Group lines of file into blocks based on precursor '  6561.9A   24...'
@@ -178,64 +269,3 @@ def _group_by_block(source_file, match_string):
         else:
             buffer.append(line)
     yield buffer
-
-
-def adf15(file_name, block_num):
-
-    wavelength_match = '^\s*[0-9]*\.[0-9] ?A .*$'
-    block_id_match = '^\s*[0-9]*\.[0-9] ?A\s*([0-9]*)\s*([0-9]*).*/TYPE = ([a-zA-Z]*).*/ISEL *= * ([0-9]*)$'
-    with open(file_name, "r") as adf15_file:
-        for block in _group_by_block(adf15_file, wavelength_match):
-            match = re.match(block_id_match, block[0])
-
-            if not match:
-                continue
-
-            if int(match.groups()[3]) == block_num:
-                # get number of n and T data points:
-                num_n = int(match.groups()[0])
-                num_t = int(match.groups()[1])
-
-                block.pop(0)
-
-                # Load density values
-                nn = 0
-                density = []
-                while nn != num_n:
-                    next_line = block.pop(0)
-                    components = next_line.split()
-                    for value in components:
-                        nn += 1
-                        density.append(float(value))
-
-                # Load temperature values
-                nt = 0
-                temperature = []
-                while nt != num_t:
-                    next_line = block.pop(0)
-                    components = next_line.split()
-                    for value in components:
-                        nt += 1
-                        temperature.append(float(value))
-
-                # Loop over the remaining lines in the block
-                rates = []
-                while block:
-                    next_line = block.pop(0)
-                    components = next_line.split()
-                    for value in components:
-                        rates.append(float(value))
-
-                if len(rates) != num_n * num_t:
-                    raise RuntimeError('The input file {} is invalid. Number of rate values must equal num_density * '
-                                       'num_temperature values.'.format(file_name))
-
-                density = np.array(density)
-                temperature = np.array(temperature)
-                rates = np.array(rates)
-                rates = rates.reshape((num_n, num_t))
-
-                return {'DENS': density, 'TE': temperature, 'PEC': rates}
-
-        # If code gets to here, block wasn't found.
-        raise RuntimeError('Block number {} was not found in ADF15 file {}.'.format(block_num, file_name))

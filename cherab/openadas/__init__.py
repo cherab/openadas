@@ -13,7 +13,7 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
-
-from .read import *
-from .utilities import print_available_adf15_rates
-from .openadas import OpenADAS
+#
+# from .read import *
+# from .utilities import print_available_adf15_rates
+# from .openadas import OpenADAS
