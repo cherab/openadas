@@ -60,6 +60,9 @@ def read_adf15(element, ionisation, adf_file_path):
 
 
 def _scrape_metadata(file, element, ionisation):
+    """
+    Scrapes transition and block information from the comments.
+    """
 
     config = RecursiveDict()
 
@@ -192,6 +195,9 @@ def _scrape_metadata(file, element, ionisation):
 
 
 def _extract_rate(file, block_num):
+    """
+    Reads and converts the rate data for the specified block.
+    """
 
     # search from start of file
     file.seek(0)
@@ -258,8 +264,15 @@ def _extract_rate(file, block_num):
     raise RuntimeError('Block number {} was not found in the ADF15 file.'.format(block_num))
 
 
-# Group lines of file into blocks based on precursor '  6561.9A   24...'
 def _group_by_block(source_file, match_string):
+    """
+    Generator the splits the ADF15 file into blocks.
+
+    Groups lines of file into blocks based on precursor '  6561.9A   24...'
+
+    Note: comment section not filtered out of last block, don't over-read!
+    """
+
     buffer = []
     for line in source_file:
         if re.match(match_string, line):
