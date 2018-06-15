@@ -42,17 +42,17 @@ _L_LOOKUP = {
 
 def read_adf15(element, ionisation, adf_file_path):
 
-    file = open(adf_file_path, "r")
-    config = _scrape_metadata(file, element, ionisation)
+    with open(adf_file_path, "r") as file:
+        config = _scrape_metadata(file, element, ionisation)
 
-    # process rate data
-    rates = RecursiveDict()
-    for cls in ('excitation', 'recombination', 'cx_thermal'):
-        for element, ionisations in config[cls].items():
-            for ionisation, transitions in ionisations.items():
-                for transition in transitions.keys():
-                    block_num = config[cls][element][ionisation][transition]
-                    rates[cls][element][ionisation][transition] = _extract_rate(file, block_num)
+        # process rate data
+        rates = RecursiveDict()
+        for cls in ('excitation', 'recombination', 'cx_thermal'):
+            for element, ionisations in config[cls].items():
+                for ionisation, transitions in ionisations.items():
+                    for transition in transitions.keys():
+                        block_num = config[cls][element][ionisation][transition]
+                        rates[cls][element][ionisation][transition] = _extract_rate(file, block_num)
 
     wavelengths = config['wavelength']
     return rates, wavelengths
@@ -73,14 +73,14 @@ def _scrape_metadata(file, element, ionisation):
     if element == hydrogen:
 
         pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
-        while not re.match(pec_index_header_match, lines[0]):
+        while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
             lines.pop(0)
         index_lines = lines
 
         for i in range(len(index_lines)):
 
             pec_hydrogen_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*N=\s*([0-9]*) - N=\s*([0-9]*)\s*([A-Z]*)'
-            match = re.match(pec_hydrogen_transition_match, index_lines[i])
+            match = re.match(pec_hydrogen_transition_match, index_lines[i], re.IGNORECASE)
             if not match:
                 continue
 
@@ -105,14 +105,14 @@ def _scrape_metadata(file, element, ionisation):
     elif element.atomic_number - ionisation == 1:
 
         pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
-        while not re.match(pec_index_header_match, lines[0]):
+        while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
             lines.pop(0)
         index_lines = lines
 
         for i in range(len(index_lines)):
 
-            pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9])\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
-            match = re.match(pec_full_transition_match, index_lines[i])
+            pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
+            match = re.match(pec_full_transition_match, index_lines[i], re.IGNORECASE)
             if not match:
                 continue
 
@@ -140,10 +140,10 @@ def _scrape_metadata(file, element, ionisation):
         configuration_dict = {}
 
         configuration_header_match = '^C\s*Configuration\s*\(2S\+1\)L\(w-1/2\)\s*Energy \(cm\*\*-1\)$'
-        while not re.match(configuration_header_match, lines[0]):
+        while not re.match(configuration_header_match, lines[0], re.IGNORECASE):
             lines.pop(0)
         pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
-        while not re.match(pec_index_header_match, lines[0]):
+        while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
             configuration_lines.append(lines[0])
             lines.pop(0)
         index_lines = lines
@@ -151,7 +151,7 @@ def _scrape_metadata(file, element, ionisation):
         for i in range(len(configuration_lines)):
 
             configuration_string_match = "^C\s*([0-9]*)\s*((?:[0-9][SPDFG][0-9]\s)*)\s*\(([0-9]*\.?[0-9]*)\)([0-9]*)\(\s*([0-9]*\.?[0-9]*)\)"
-            match = re.match(configuration_string_match, configuration_lines[i])
+            match = re.match(configuration_string_match, configuration_lines[i], re.IGNORECASE)
             if not match:
                 continue
 
@@ -166,8 +166,8 @@ def _scrape_metadata(file, element, ionisation):
 
         for i in range(len(index_lines)):
 
-            pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9])\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
-            match = re.match(pec_full_transition_match, index_lines[i])
+            pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
+            match = re.match(pec_full_transition_match, index_lines[i], re.IGNORECASE)
             if not match:
                 continue
 
@@ -205,7 +205,7 @@ def _extract_rate(file, block_num):
     block_id_match = '^\s*[0-9]*\.[0-9] ?A\s*([0-9]*)\s*([0-9]*).*/TYPE = ([a-zA-Z]*).*/ISEL *= * ([0-9]*)$'
 
     for block in _group_by_block(file, wavelength_match):
-        match = re.match(block_id_match, block[0])
+        match = re.match(block_id_match, block[0], re.IGNORECASE)
 
         if not match:
             continue
@@ -274,7 +274,7 @@ def _group_by_block(source_file, match_string):
 
     buffer = []
     for line in source_file:
-        if re.match(match_string, line):
+        if re.match(match_string, line, re.IGNORECASE):
             if buffer:
                 yield buffer
             buffer = [line]

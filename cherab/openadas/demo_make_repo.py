@@ -24,12 +24,24 @@ install_files(
     {
         'adf15': (
             (hydrogen, 0, 'adf15/pec12#h/pec12#h_pju#h0.dat'),
+            (helium, 0, 'adf15/pec96#he/pec96#he_pju#he0.dat'),
+            (helium, 1, 'adf15/pec96#he/pec96#he_pju#he1.dat'),
+            (beryllium, 0, 'adf15/pec96#be/pec96#be_pju#be0.dat'),
+            (beryllium, 1, 'adf15/pec96#be/pec96#be_pju#be1.dat'),
+            (beryllium, 2, 'adf15/pec96#be/pec96#be_pju#be2.dat'),
+            (beryllium, 3, 'adf15/pec96#be/pec96#be_pju#be3.dat'),
             (carbon, 0, 'adf15/pec96#c/pec96#c_vsu#c0.dat'),
             (carbon, 1, 'adf15/pec96#c/pec96#c_vsu#c1.dat'),
-            (carbon, 2, 'adf15/pec96#c/pec96#c_vsu#c2.dat')
+            (carbon, 2, 'adf15/pec96#c/pec96#c_vsu#c2.dat'),
+            # (neon, 0, 'adf15/pec96#ne/pec96#ne_pju#ne0.dat'),     #TODO: OPENADAS DATA CORRUPT
+            # (neon, 1, 'adf15/pec96#ne/pec96#ne_pju#ne1.dat'),     #TODO: OPENADAS DATA CORRUPT
+            (nitrogen, 0, 'adf15/pec96#n/pec96#n_vsu#n0.dat'),
+            (nitrogen, 1, 'adf15/pec96#n/pec96#n_vsu#n1.dat'),
+            # (nitrogen, 2, 'adf15/pec96#n/pec96#n_vsu#n2.dat'),    #TODO: OPENADAS DATA CORRUPT
         )
     },
-    download=True
+    download=True,
+    # adas_path='/home/adas/adas/'
 )
 
 
