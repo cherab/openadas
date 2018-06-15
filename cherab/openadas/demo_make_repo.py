@@ -17,7 +17,7 @@
 
 import os
 from cherab.core.atomic.elements import hydrogen, helium, beryllium, carbon, neon, nitrogen
-from cherab.openadas.repository import install_files
+from cherab.openadas.install import install_files
 
 
 install_files(

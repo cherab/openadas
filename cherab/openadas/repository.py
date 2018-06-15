@@ -15,10 +15,9 @@
 # under the Licence.
 
 import os
-import urllib
 import json
+import numpy as np
 from cherab.core.utility import RecursiveDict
-from cherab.openadas.read import *
 
 """
 Utilities for managing the local rate repository.
@@ -26,9 +25,6 @@ Utilities for managing the local rate repository.
 
 # todo: make this a configuration option in a json file, add options to setup.py to set them during install
 DEFAULT_REPOSITORY_PATH = os.path.expanduser('~/.cherab/openadas/repository')
-ADAS_FILE_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')    # todo: if pointed to ADAS home.... no downloading!
-OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
-
 
 # cherab rate repository will store rates as they are addressed by the interface
 # adf files will be "installed" into the repository
@@ -46,76 +42,55 @@ OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
 #   rates: photons / m^3 (converts to W/m^3 in rate object)
 
 
-def install_files(configuration, download=False, repository_path=None, adas_path=None):
-
-    for adf in configuration:
-        if adf.lower() == 'adf15':
-            for args in configuration[adf]:
-                install_adf15(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+# def add_pec_rate(cls, element, ionisation, te, ne, rate):
+#     pass
 
 
-def install_adf15(element, ionisation, file_path, download=False, repository_path=None, adas_path=None):
-    """
-    Adds the rates in the ADF15 file to the repository.
+# todo: add error handling
+def update_wavelengths(wavelengths, repository_path=None):
 
-    :param element: The element described by the rate file.
-    :param ionisation: The ionisation level described by the rate file.
-    :param file: Path relative to ADAS root.
-    :param download: Attempt to download file if not present (Default=True).
-    :return:
-    """
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
-    print('Installing {}...'.format(file_path))
-    path = _locate_adas_file(file_path, download, adas_path)
-    if not path:
-        raise ValueError('Could not locate the specified ADAS file.')
+    for element, ionisations in wavelengths.items():
+        for ionisation, transitions in ionisations.items():
 
-    # decode file and write out rates
-    rates, wavelengths = read_adf15(element, ionisation, path)
-    update_pec_rates(rates, repository_path)
-    # todo: update_wavelengths(wavelengths, repository_path)
+            # todo: validate element, ionisation and wavelength data
 
-    print(' - installed!')
+            path = os.path.join(repository_path, 'wavelength/{}/{}.json'.format(element.symbol.lower(), ionisation))
 
+            # read in any existing wavelengths
+            try:
+                with open(path, 'r') as f:
+                    content = RecursiveDict.from_dict(json.load(f))
+            except FileNotFoundError:
+                content = RecursiveDict()
 
-def _locate_adas_file(file_path, download=False, adas_path=None):
-
-    path = None
-
-    # is file in adas path?
-    if adas_path:
-        target = os.path.join(adas_path, file_path)
-        if os.path.isfile(target):
-            path = target
-
-    # download file?
-    if not path and download:
-        target = os.path.join(ADAS_FILE_CACHE, file_path)
-
-        # is file in cache? if not download...
-        if os.path.isfile(target):
-            path = target
-        else:
+            # add/replace data for a transition
+            for transition in transitions:
+                key = _encode_transition(transition)
+                content[key] = wavelengths[element][ionisation][transition]
 
             # create directory structure if missing
-            directory = os.path.dirname(target)
+            directory = os.path.dirname(path)
             if not os.path.isdir(directory):
                 os.makedirs(directory)
 
-            # TODO: move to logging?
-            print(" - downloading ADF file '{}' to '{}'".format(file_path, target))
-
-            url = urllib.parse.urljoin(OPENADAS_FILE_URL, file_path.replace('#', '][').lstrip('/'))
-            urllib.request.urlretrieve(url, target)
-            path = target
-
-    return path
+            # write new data
+            with open(path, 'w') as f:
+                json.dump(content, f, indent=2, sort_keys=True)
 
 
-def add_pec_rate(cls, element, ionisation, te, ne, rate):
-    pass
+# todo: add error handling
+def get_wavelength(element, ionisation, transition, repository_path=None):
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+    path = os.path.join(repository_path, 'wavelength/{}/{}.json'.format(element.symbol.lower(), ionisation))
+    with open(path, 'r') as f:
+        content = json.load(f)
+    return content[_encode_transition(transition)]
 
 
+# todo: add error handling
 def update_pec_rates(rates, repository_path=None):
     """
     PEC rate file structure
@@ -155,9 +130,36 @@ def update_pec_rates(rates, repository_path=None):
                 if not os.path.isdir(directory):
                     os.makedirs(directory)
 
-                # read in any existing rates
+                # write new data
                 with open(path, 'w') as f:
                     json.dump(content, f, indent=2, sort_keys=True)
+
+
+def get_pec_excitation_rate(element, ionisation, transition, repository_path=None):
+    return _get_pec_rate('excitation', element, ionisation, transition, repository_path)
+
+
+def get_pec_recombination_rate(element, ionisation, transition, repository_path=None):
+    return _get_pec_rate('recombination', element, ionisation, transition, repository_path)
+
+
+# todo: add error handling
+def _get_pec_rate(cls, element, ionisation, transition, repository_path=None):
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+    path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), ionisation))
+    with open(path, 'r') as f:
+        content = json.load(f)
+
+    # extract raw rate data
+    d = content[_encode_transition(transition)]
+
+    # convert to numpy arrays
+    d['ne'] = np.array(d['ne'], np.float64)
+    d['te'] = np.array(d['te'], np.float64)
+    d['rate'] = np.array(d['rate'], np.float64)
+
+    return d
 
 
 def _encode_transition(transition):

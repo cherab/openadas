@@ -23,11 +23,11 @@ from cherab.core.utility.conversion import PhotonToJ
 
 cdef class ImpactExcitationRate(CoreImpactExcitationRate):
 
-    def __init__(self, double wavelength, np.ndarray te, np.ndarray ne, np.ndarray rate, extrapolate=False):
+    def __init__(self, double wavelength, np.ndarray ne, np.ndarray te, np.ndarray rate, extrapolate=False):
         """
         :param wavelength: Resting wavelength of corresponding emission line in nm.
-        :param te: Electron temperature range in eV.
         :param ne: Electron density range in m^-3.
+        :param te: Electron temperature range in eV.
         :param rate: PEC rate in photons.m^3.
         :param extrapolate: Enable extrapolation (default=False).
         """
@@ -52,11 +52,11 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
 
 cdef class RecombinationRate(CoreRecombinationRate):
 
-    def __init__(self, double wavelength, np.ndarray te, np.ndarray ne, np.ndarray rate, extrapolate=False):
+    def __init__(self, double wavelength, np.ndarray ne, np.ndarray te, np.ndarray rate, extrapolate=False):
         """
         :param wavelength: Resting wavelength of corresponding emission line in nm.
-        :param te: Electron temperature range in eV.
         :param ne: Electron density range in m^-3.
+        :param te: Electron temperature range in eV.
         :param rate: PEC rate in photons.m^3.
         :param extrapolate: Enable extrapolation (default=False).
         """
