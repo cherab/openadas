@@ -51,6 +51,13 @@ def read_adf15(element, ionisation, adf_file_path):
     """
 
     with open(adf_file_path, "r") as file:
+
+        # for check header line
+        header = file.readline()
+        if not re.match('^\s*(\d*) {4}/(.*)/?\s*$', header):
+            raise ValueError('The specified path does not point to a valid ADF15 file.')
+
+        # scrape transition information and wavelength
         config = _scrape_metadata(file, element, ionisation)
 
         # process rate data
