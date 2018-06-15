@@ -41,6 +41,14 @@ _L_LOOKUP = {
 
 
 def read_adf15(element, ionisation, adf_file_path):
+    """
+    Opens and parses ADAS ADF15 data files.
+
+    :param element: Element described by ADF file.
+    :param ionisation: Ionisation described by ADF file.
+    :param adf_file_path: Path to ADF15 file from ADAS root.
+    :return:
+    """
 
     with open(adf_file_path, "r") as file:
         config = _scrape_metadata(file, element, ionisation)
