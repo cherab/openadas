@@ -96,21 +96,7 @@ class OpenADAS(AtomicData):
     #         plasma_ion = plasma_ion.element
     #
     #     # locate data file
-    #     try:
-    #         filename = self._adf21_config[beam_ion][plasma_ion][ionisation]
-    #     except KeyError:
-    #
-    #         # If not found in current configuration try the Open-ADAS library files.
-    #         try:
-    #             adas_path, download_path = self._adas_config["ADF21_BMS_FILES"][beam_ion][plasma_ion][ionisation]
-    #             adf_file_path = check_for_adf_file(adas_path, download_path)
-    #             self._add_adf21_file(beam_ion, plasma_ion, ionisation, adf_file_path)
-    #             filename = self._adf21_config[beam_ion][plasma_ion][ionisation]
-    #         except KeyError:
-    #             raise RuntimeError("The requested beam stopping rate data does not have an entry in the Open-ADAS "
-    #                                "configuration (beam ion: {}, plasma ion: {}, ionisation: {})."
-    #                                "".format(beam_ion.symbol, plasma_ion.symbol, ionisation))
-    #
+
     #     # load and interpolate data
     #     return BeamStoppingRate(adf21(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
 
@@ -124,20 +110,6 @@ class OpenADAS(AtomicData):
     #         plasma_ion = plasma_ion.element
     #
     #     # locate data file
-    #     try:
-    #         filename = self._adf22_bmp_config[beam_ion][metastable][plasma_ion][ionisation]
-    #     except KeyError:
-    #
-    #         # If not found in current configuration try the Open-ADAS library files.
-    #         try:
-    #             adas_path, download_path = self._adas_config["ADF22_BMP_FILES"][beam_ion][metastable][plasma_ion][ionisation]
-    #             adf_file_path = check_for_adf_file(adas_path, download_path)
-    #             self._add_adf22_bmp_file(beam_ion, metastable, plasma_ion, ionisation, adf_file_path)
-    #             filename = self._adf22_bmp_config[beam_ion][metastable][plasma_ion][ionisation]
-    #         except KeyError:
-    #             raise RuntimeError("The requested beam population rate data does not have an entry in the "
-    #                                "Open-ADAS configuration (beam ion: {}, metastable: {}, plasma ion: {}, ionisation: {})."
-    #                                "".format(beam_ion.symbol, metastable, plasma_ion.symbol, ionisation))
     #
     #     # load and interpolate data
     #     return BeamPopulationRate(adf22(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
@@ -152,21 +124,6 @@ class OpenADAS(AtomicData):
     #
     #     if isinstance(plasma_ion, Isotope):
     #         plasma_ion = plasma_ion.element
-    #
-    #     try:
-    #         filename = self._adf22_bme_config[beam_ion][plasma_ion][ionisation][transition]
-    #     except KeyError:
-    #
-    #         # If not found in current configuration try the Open-ADAS library files.
-    #         try:
-    #             adas_path, download_path = self._adas_config["ADF22_BME_FILES"][beam_ion][plasma_ion][ionisation][transition]
-    #             adf_file_path = check_for_adf_file(adas_path, download_path)
-    #             self._add_adf22_bme_file(beam_ion, plasma_ion, ionisation, transition, adf_file_path)
-    #             filename = self._adf22_bmp_config[beam_ion][plasma_ion][ionisation][transition]
-    #         except KeyError:
-    #             raise RuntimeError("The requested beam emission rate data does not have an entry in the "
-    #                                "Open-ADAS configuration (beam ion: {}, plasma ion: {}, ionisation: {}, transition: {})."
-    #                                "".format(beam_ion.symbol, plasma_ion.symbol, ionisation, transition))
     #
     #     # load and interpolate data
     #     return BeamEmissionRate(adf22(os.path.join(self._data_path, filename)), wavelength, extrapolate=self._permit_extrapolation)
@@ -195,15 +152,6 @@ class OpenADAS(AtomicData):
     #     if isinstance(ion, Isotope):
     #         ion = ion.element
     #
-    #     try:
-    #         plt_files = self._adas_config["ADF11_PLT_FILES"][ion.symbol]
-    #     except KeyError:
-    #         raise ValueError("No ADF11 files set for Ion - {}".format(ion.symbol))
-    #
-    #     absolute_file_path = check_for_adf_file(plt_files['ADAS_Path'], plt_files['Download_URL'])
-    #
-    #     densities, temperatures, rate_data = adf11(absolute_file_path, ion, ionisation)
-    #
     #     name = 'Stage Resolved Line Radiation - ({}, {})'.format(ion.symbol, ionisation)
     #     return StageResolvedRadiation(ion, ionisation, densities, temperatures, rate_data,
     #                                   name=name, extrapolate=self._permit_extrapolation)
@@ -213,15 +161,6 @@ class OpenADAS(AtomicData):
     #     # extract element from isotope
     #     if isinstance(ion, Isotope):
     #         ion = ion.element
-    #
-    #     try:
-    #         prb_files = self._adas_config["ADF11_PRB_FILES"][ion.symbol]
-    #     except KeyError:
-    #         raise ValueError("No ADF11 files set for Ion - {}".format(ion.symbol))
-    #
-    #     absolute_file_path = check_for_adf_file(prb_files['ADAS_Path'], prb_files['Download_URL'])
-    #
-    #     densities, temperatures, rate_data = adf11(absolute_file_path, ion, ionisation)
     #
     #     name = 'Stage Resolved Continuum Radiation - ({}, {})'.format(ion.symbol, ionisation)
     #

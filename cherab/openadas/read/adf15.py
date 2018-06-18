@@ -62,7 +62,7 @@ def read_adf15(element, ionisation, adf_file_path):
 
         # process rate data
         rates = RecursiveDict()
-        for cls in ('excitation', 'recombination', 'cx_thermal'):
+        for cls in ('excitation', 'recombination', 'thermalcx'):
             for element, ionisations in config[cls].items():
                 for ionisation, transitions in ionisations.items():
                     for transition in transitions.keys():

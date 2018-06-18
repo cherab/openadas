@@ -18,6 +18,7 @@ import os
 import json
 import numpy as np
 from cherab.core.utility import RecursiveDict
+from cherab.core.atomic import Element
 
 """
 Utilities for managing the local rate repository.
@@ -54,7 +55,12 @@ def update_wavelengths(wavelengths, repository_path=None):
     for element, ionisations in wavelengths.items():
         for ionisation, transitions in ionisations.items():
 
-            # todo: validate element, ionisation and wavelength data
+            # sanitise and validate
+            if not isinstance(element, Element):
+                raise TypeError('The element must be an Element object.')
+
+            if not _valid_ionisation(element, ionisation):
+                raise ValueError('Ionisation level is larger than the number of protons in the element.')
 
             path = os.path.join(repository_path, 'wavelength/{}/{}.json'.format(element.symbol.lower(), ionisation))
 
@@ -68,7 +74,7 @@ def update_wavelengths(wavelengths, repository_path=None):
             # add/replace data for a transition
             for transition in transitions:
                 key = _encode_transition(transition)
-                content[key] = wavelengths[element][ionisation][transition]
+                content[key] = float(wavelengths[element][ionisation][transition])
 
             # create directory structure if missing
             directory = os.path.dirname(path)
@@ -98,13 +104,28 @@ def update_pec_rates(rates, repository_path=None):
     /pec/CLASS/ELEMENT/IONISATION.json
     """
 
+    valid_classes = [
+        'excitation',
+        'recombination',
+        'thermalcx'
+    ]
+
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
     for cls, elements in rates.items():
         for element, ionisations in elements.items():
             for ionisation, transitions in ionisations.items():
 
-                # todo: validate class, element, ionisation and rate data
+                # sanitise and validate
+                cls = cls.lower()
+                if cls not in valid_classes:
+                    raise ValueError('Unrecognised pec rate class \'{}\'.'.format(cls))
+
+                if not isinstance(element, Element):
+                    raise TypeError('The element must be an Element object.')
+
+                if not _valid_ionisation(element, ionisation):
+                    raise ValueError('Ionisation level is larger than the number of protons in the element.')
 
                 path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), ionisation))
 
@@ -119,9 +140,24 @@ def update_pec_rates(rates, repository_path=None):
                 for transition in transitions:
                     key = _encode_transition(transition)
                     data = rates[cls][element][ionisation][transition]
+
+                    # sanitise/validate data
+                    data['ne'] = np.array(data['ne'], np.float64)
+                    data['te'] = np.array(data['te'], np.float64)
+                    data['rate'] = np.array(data['rate'], np.float64)
+
+                    if data['ne'].ndim != 1:
+                        raise ValueError('Density array must be a 1D array.')
+
+                    if data['te'].ndim != 1:
+                        raise ValueError('Temperature array must be a 1D array.')
+
+                    if (data['ne'].shape[0], data['te'].shape[0]) != data['rate'].shape:
+                        raise ValueError('Density, temperature and rate data arrays have inconsistent sizes.')
+
                     content[key] = {
-                        'te': data['te'].tolist(),
                         'ne': data['ne'].tolist(),
+                        'te': data['te'].tolist(),
                         'rate': data['rate'].tolist()
                     }
 
@@ -177,7 +213,14 @@ def _encode_transition(transition):
     return '{} -> {}'.format(upper, lower)
 
 
+def _valid_ionisation(element, ionisation):
+    """
+    Returns true if the element can be ionised to the specified level.
 
+    :param ionisation: Integer ionisation level.
+    :return: True/False.
+    """
+    return ionisation <= element.atomic_number
 
 
 

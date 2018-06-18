@@ -38,7 +38,7 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
 
     :param element: The element described by the rate file.
     :param ionisation: The ionisation level described by the rate file.
-    :param file: Path relative to ADAS root.
+    :param file_path: Path relative to ADAS root.
     :param download: Attempt to download file if not present (Default=True).
     :return:
     """
