@@ -47,7 +47,6 @@ DEFAULT_REPOSITORY_PATH = os.path.expanduser('~/.cherab/openadas/repository')
 #     pass
 
 
-# todo: add error handling
 def update_wavelengths(wavelengths, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
@@ -86,17 +85,20 @@ def update_wavelengths(wavelengths, repository_path=None):
                 json.dump(content, f, indent=2, sort_keys=True)
 
 
-# todo: add error handling
 def get_wavelength(element, ionisation, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
     path = os.path.join(repository_path, 'wavelength/{}/{}.json'.format(element.symbol.lower(), ionisation))
-    with open(path, 'r') as f:
-        content = json.load(f)
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+    except FileNotFoundError:
+        raise RuntimeError('Requested wavelength (element={}, ionisation={}, transition={})'
+                           ' is not available.'.format(element.symbol, ionisation, transition))
+
     return content[_encode_transition(transition)]
 
 
-# todo: add error handling
 def update_pec_rates(rates, repository_path=None):
     """
     PEC rate file structure
@@ -179,13 +181,16 @@ def get_pec_recombination_rate(element, ionisation, transition, repository_path=
     return _get_pec_rate('recombination', element, ionisation, transition, repository_path)
 
 
-# todo: add error handling
 def _get_pec_rate(cls, element, ionisation, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
     path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), ionisation))
-    with open(path, 'r') as f:
-        content = json.load(f)
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+    except FileNotFoundError:
+        raise RuntimeError('Requested PEC rate (class={}, element={}, ionisation={}, transition={})'
+                           ' is not available.'.format(cls, element.symbol, ionisation, transition))
 
     # extract raw rate data
     d = content[_encode_transition(transition)]
