@@ -23,14 +23,17 @@ from cherab.core.utility.conversion import PhotonToJ
 
 cdef class ImpactExcitationRate(CoreImpactExcitationRate):
 
-    def __init__(self, double wavelength, np.ndarray ne, np.ndarray te, np.ndarray rate, extrapolate=False):
+    def __init__(self, double wavelength, dict data, extrapolate=False):
         """
         :param wavelength: Resting wavelength of corresponding emission line in nm.
-        :param ne: Electron density range in m^-3.
-        :param te: Electron temperature range in eV.
-        :param rate: PEC rate in photons.m^3.
+        :param data: Dictionary containing rate data.
         :param extrapolate: Enable extrapolation (default=False).
         """
+
+        # unpack
+        ne = data['ne']
+        te = data['te']
+        rate =  data['rate']
 
         # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
         rate = PhotonToJ.to(rate, wavelength)
@@ -52,14 +55,17 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
 
 cdef class RecombinationRate(CoreRecombinationRate):
 
-    def __init__(self, double wavelength, np.ndarray ne, np.ndarray te, np.ndarray rate, extrapolate=False):
+    def __init__(self, double wavelength, dict data, extrapolate=False):
         """
         :param wavelength: Resting wavelength of corresponding emission line in nm.
-        :param ne: Electron density range in m^-3.
-        :param te: Electron temperature range in eV.
-        :param rate: PEC rate in photons.m^3.
+        :param data: Dictionary containing rate data.
         :param extrapolate: Enable extrapolation (default=False).
         """
+
+        # unpack
+        ne = data['ne']
+        te = data['te']
+        rate =  data['rate']
 
         # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
         rate = PhotonToJ.to(rate, wavelength)

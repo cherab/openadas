@@ -135,7 +135,7 @@ class OpenADAS(AtomicData):
 
         wavelength = repository.get_wavelength(ion, ionisation, transition)
         data = repository.get_pec_excitation_rate(ion, ionisation, transition)
-        return ImpactExcitationRate(wavelength, data['ne'], data['te'], data['rate'], extrapolate=self._permit_extrapolation)
+        return ImpactExcitationRate(wavelength, data, extrapolate=self._permit_extrapolation)
 
     def recombination_rate(self, ion, ionisation, transition):
 
@@ -144,7 +144,7 @@ class OpenADAS(AtomicData):
 
         wavelength = repository.get_wavelength(ion, ionisation, transition)
         data = repository.get_pec_recombination_rate(ion, ionisation, transition)
-        return RecombinationRate(wavelength, data['ne'], data['te'], data['rate'], extrapolate=self._permit_extrapolation)
+        return RecombinationRate(wavelength, data, extrapolate=self._permit_extrapolation)
 
     # def stage_resolved_line_radiation_rate(self, ion, ionisation):
     #

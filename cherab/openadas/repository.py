@@ -27,25 +27,6 @@ Utilities for managing the local rate repository.
 # todo: make this a configuration option in a json file, add options to setup.py to set them during install
 DEFAULT_REPOSITORY_PATH = os.path.expanduser('~/.cherab/openadas/repository')
 
-# cherab rate repository will store rates as they are addressed by the interface
-# adf files will be "installed" into the repository
-# open adas will use a default location if not specified
-
-# e.g. /pec/he/he0.json
-
-# inside file: definition for each line: 1s1 4d1 1D2.0 1s1 2p1 1P1.0
-
-# data will be a json format version of adf structure, but nicer names etc...
-
-# units:
-#   temperature: eV
-#   density - m^-3
-#   rates: photons / m^3 (converts to W/m^3 in rate object)
-
-
-# def add_pec_rate(cls, element, ionisation, te, ne, rate):
-#     pass
-
 
 def update_wavelengths(wavelengths, repository_path=None):
 
@@ -179,6 +160,10 @@ def get_pec_excitation_rate(element, ionisation, transition, repository_path=Non
 
 def get_pec_recombination_rate(element, ionisation, transition, repository_path=None):
     return _get_pec_rate('recombination', element, ionisation, transition, repository_path)
+
+
+def get_pec_thermalcx_rate(element, ionisation, transition, repository_path=None):
+    return _get_pec_rate('thermalcx', element, ionisation, transition, repository_path)
 
 
 def _get_pec_rate(cls, element, ionisation, transition, repository_path=None):
