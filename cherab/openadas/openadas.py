@@ -49,42 +49,24 @@ class OpenADAS(AtomicData):
             ion = ion.element
         return repository.get_wavelength(ion, ionisation, transition)
 
-    # def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
-    #
-    #     # extract element from isotope
-    #     if isinstance(donor_ion, Isotope):
-    #         donor_ion = donor_ion.element
-    #
-    #     if isinstance(receiver_ion, Isotope):
-    #         receiver_ion = receiver_ion.element
-    #
-    #     # locate data files
-    #     try:
-    #         data = self._adf12_config[donor_ion][receiver_ion][receiver_ionisation]
-    #     except KeyError:
-    #
-    #         # If not found in current configuration try the Open-ADAS library files.
-    #         try:
-    #             library_files = self._adas_config['ADF12_CXS_FILES'][donor_ion][receiver_ion][receiver_ionisation]
-    #
-    #             for file in library_files:
-    #                 donor_metastable, adas_path, download_path = file
-    #                 adf_file_path = check_for_adf_file(adas_path, download_path)
-    #                 self._add_adf12_file(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, adf_file_path)
-    #             data = self._adf12_config[donor_ion][receiver_ion][receiver_ionisation]
-    #         except KeyError:
-    #             raise RuntimeError("The requested beam cx rate data does not have an entry in the Open-ADAS configuration"
-    #                                "(donor ion: {}, receiver ion: {}, ionisation: {}, transition: {})."
-    #                                "".format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
-    #
-    #     wavelength = self.wavelength(receiver_ion, receiver_ionisation - 1, transition)
-    #
-    #     # load and interpolate the relevant transition data from each file
-    #     rates = []
-    #     for donor_metastable, filename in data:
-    #         file_path = os.path.join(self._data_path, filename)
-    #         rates.append(BeamCXRate(donor_metastable, wavelength, adf12(file_path, transition), extrapolate=self._permit_extrapolation))
-    #     return rates
+    def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
+
+        # extract element from isotope
+        if isinstance(donor_ion, Isotope):
+            donor_ion = donor_ion.element
+
+        if isinstance(receiver_ion, Isotope):
+            receiver_ion = receiver_ion.element
+
+        # read data
+        wavelength = repository.get_wavelength(receiver_ion, receiver_ionisation - 1, transition)
+        data = repository.get_beam_cx_rates(donor_ion, receiver_ion, receiver_ionisation, transition)
+
+        # load and interpolate the relevant transition data from each file
+        rates = []
+        for donor_metastable, rate_data in data:
+            rates.append(BeamCXRate(donor_metastable, wavelength, rate_data, extrapolate=self._permit_extrapolation))
+        return rates
 
     # def beam_stopping_rate(self, beam_ion, plasma_ion, ionisation):
     #

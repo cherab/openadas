@@ -23,6 +23,8 @@ from cherab.core.math cimport Interpolate2DCubic
 cdef class ImpactExcitationRate(CoreImpactExcitationRate):
 
     cdef:
+        readonly dict raw_data
+        readonly double wavelength
         readonly tuple density_range, temperature_range
         Interpolate2DCubic _rate
 
@@ -30,6 +32,8 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
 cdef class RecombinationRate(CoreRecombinationRate):
 
     cdef:
+        readonly dict raw_data
+        readonly double wavelength
         readonly tuple density_range, temperature_range
         Interpolate2DCubic _rate
 

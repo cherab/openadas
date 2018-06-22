@@ -80,6 +80,34 @@ def get_wavelength(element, ionisation, transition, repository_path=None):
     return content[_encode_transition(transition)]
 
 
+def update_beam_cx_rates(rates, repository_path=None):
+    # organisation in repository:
+    #   beam/cx/donor_ion/receiver_ion/receiver_ionisation.json
+    # inside json file:
+    #   transition: [list of donor_metastables with rates]
+    pass
+
+
+def get_beam_cx_rates(donor_ion, receiver_ion, receiver_ionisation, transition, repository_path=None):
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+    path = os.path.join(repository_path, 'beam/cx/{}/{}/{}.json'.format(donor_ion.symbol.lower(), receiver_ion.symbol.lower(), receiver_ionisation))
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+    except FileNotFoundError:
+        raise RuntimeError('Requested beam CX effective emission rates (donor={}, receiver={}, ionisation={}, transition={})'
+                           ' are not available.'.format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
+
+    rates = content[_encode_transition(transition)]
+
+    # convert data to numpy arrays
+    for metastable, data in rates:
+        #TODO: WRITEME
+        pass
+    return rates
+
+
 def update_pec_rates(rates, repository_path=None):
     """
     PEC rate file structure

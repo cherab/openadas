@@ -26,9 +26,16 @@ OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
 def install_files(configuration, download=False, repository_path=None, adas_path=None):
 
     for adf in configuration:
+        if adf.lower() == 'adf12':
+            for args in configuration[adf]:
+                install_adf12(*args, download=download, repository_path=repository_path, adas_path=adas_path)
         if adf.lower() == 'adf15':
             for args in configuration[adf]:
                 install_adf15(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+
+
+def install_adf12(donor_ion, receiver_ion, receiver_ionisation, rate_files, download=False, repository_path=None, adas_path=None):
+    pass
 
 
 # todo: move print calls to logging

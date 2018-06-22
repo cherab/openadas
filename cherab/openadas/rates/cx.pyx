@@ -29,30 +29,31 @@ cdef class BeamCXRate(CoreBeamCXRate):
 
     :param donor_metastable: The metastable state of the donor species for which the rate data applies.
     :param wavelength: The natural wavelength of the emission line associated with the rate data in nm.
-    :param rate_data: A dictionary holding the rate data.
+    :param data: A dictionary holding the rate data.
     :param extrapolate: Set to True to enable extrapolation, False to disable (default).
     """
 
     @cython.cdivision(True)
-    def __init__(self, int donor_metastable, double wavelength, dict rate_data, bint extrapolate=False):
+    def __init__(self, int donor_metastable, double wavelength, dict data, bint extrapolate=False):
 
         self.donor_metastable = donor_metastable
         self.wavelength = wavelength
-        self.raw_data = rate_data
+        self.raw_data = data
 
+        # todo move conversions to data installation
         # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
-        eb = rate_data["ENER"]                                          # eV/amu
-        ti = rate_data["TIEV"]                                          # eV
-        ni = PerCm3ToPerM3.to(rate_data["DENSI"])                       # m^-3
-        zeff = rate_data["ZEFF"]
-        bmag = rate_data["BMAG"]                                        # Tesla
+        eb = data["ENER"]                                          # eV/amu
+        ti = data["TIEV"]                                          # eV
+        ni = PerCm3ToPerM3.to(data["DENSI"])                       # m^-3
+        zeff = data["ZEFF"]
+        bmag = data["BMAG"]                                        # Tesla
 
-        qref = rate_data["QEFREF"]                                      # cm^3/s
-        qeb = PhotonToJ.to(Cm3ToM3.to(rate_data["QENER"]), wavelength)  # W.m^3
-        qti = rate_data["QTIEV"] / qref                                 # dimensionless
-        qni = rate_data["QDENSI"] / qref                                # dimensionless
-        qzeff = rate_data["QZEFF"] / qref                               # dimensionless
-        qbmag = rate_data["QBMAG"] / qref                               # dimensionless
+        qref = data["QEFREF"]                                      # cm^3/s
+        qeb = PhotonToJ.to(Cm3ToM3.to(data["QENER"]), wavelength)  # W.m^3
+        qti = data["QTIEV"] / qref                                 # dimensionless
+        qni = data["QDENSI"] / qref                                # dimensionless
+        qzeff = data["QZEFF"] / qref                               # dimensionless
+        qbmag = data["QBMAG"] / qref                               # dimensionless
 
         # interpolate the rate data
         self._eb = Interpolate1DCubic(eb, qeb, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
@@ -78,23 +79,23 @@ cdef class BeamCXRate(CoreBeamCXRate):
         cdef double rate
 
         rate = self._eb.evaluate(energy)
-        if rate < 0:
+        if rate <= 0:
             return 0.0
 
         rate *= self._ti.evaluate(temperature)
-        if rate < 0:
+        if rate <= 0:
             return 0.0
 
         rate *= self._ni.evaluate(density)
-        if rate < 0:
+        if rate <= 0:
             return 0.0
 
         rate *= self._zeff.evaluate(z_effective)
-        if rate < 0:
+        if rate <= 0:
             return 0.0
 
         rate *= self._b.evaluate(b_field)
-        if rate < 0:
+        if rate <= 0:
             return 0.0
 
         return rate

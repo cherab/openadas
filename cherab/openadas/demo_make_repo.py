@@ -16,12 +16,36 @@
 # under the Licence.
 
 import os
-from cherab.core.atomic.elements import hydrogen, helium, beryllium, carbon, neon, nitrogen
+from cherab.core.atomic.elements import *
 from cherab.openadas.install import install_files
-
-
 install_files(
     {
+        'adf12': (
+            # (donor, receiver, ionisation, ((donor_metastable, rate file), ...))
+            (hydrogen, hydrogen, 1, (
+                (1, 'adf12/qef93#h/qef93#h_h1.dat')
+            )),
+            (hydrogen, helium, 2, (
+                (1, "adf12/qef93#h/qef93#h_he2.dat"),
+                (2, "adf12/qef97#h/qef97#h_en2_kvi#he2.dat")
+            )),
+            (hydrogen, beryllium, 4, (
+                (1, "adf12/qef93#h/qef93#h_be4.dat"),
+                (2, "adf12/qef97#h/qef97#h_en2_kvi#be4.dat")
+            )),
+            (hydrogen, boron, 5, (
+                (1, "adf12/qef93#h/qef93#h_b5.dat"),
+                (2, "adf12/qef97#h/qef97#h_en2_kvi#b5.dat")
+            )),
+            (hydrogen, carbon, 6, (
+                (1, "adf12/qef93#h/qef93#h_c6.dat"),
+                (2, "adf12/qef97#h/qef97#h_en2_kvi#c6.dat")
+            )),
+            (hydrogen, neon, 10, (
+                (1, "adf12/qef93#h/qef93#h_ne10.dat"),
+                (2, "adf12/qef97#h/qef97#h_en2_kvi#ne10.dat"),
+            )),
+        ),
         'adf15': (
             (hydrogen, 0, 'adf15/pec12#h/pec12#h_pju#h0.dat'),
             (helium, 0, 'adf15/pec96#he/pec96#he_pju#he0.dat'),
@@ -39,6 +63,7 @@ install_files(
             (nitrogen, 1, 'adf15/pec96#n/pec96#n_vsu#n1.dat'),
             # (nitrogen, 2, 'adf15/pec96#n/pec96#n_vsu#n2.dat'),    #TODO: OPENADAS DATA CORRUPT
         )
+
     },
     download=True,
     # adas_path='/home/adas/adas/'
@@ -50,3 +75,5 @@ install_files(
 # install_adf15(carbon, 0, 'adf15/pec96#c/pec96#c_vsu#c0.dat')
 # install_adf15(carbon, 1, 'adf15/pec96#c/pec96#c_vsu#c1.dat')
 # install_adf15(carbon, 2, 'adf15/pec96#c/pec96#c_vsu#c2.dat')
+
+

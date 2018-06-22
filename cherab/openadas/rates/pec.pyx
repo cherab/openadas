@@ -30,6 +30,9 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
         :param extrapolate: Enable extrapolation (default=False).
         """
 
+        self.wavelength = wavelength
+        self.raw_data = data
+
         # unpack
         ne = data['ne']
         te = data['te']
@@ -61,6 +64,9 @@ cdef class RecombinationRate(CoreRecombinationRate):
         :param data: Dictionary containing rate data.
         :param extrapolate: Enable extrapolation (default=False).
         """
+
+        self.wavelength = wavelength
+        self.raw_data = data
 
         # unpack
         ne = data['ne']
