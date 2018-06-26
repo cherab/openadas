@@ -73,11 +73,10 @@ def get_wavelength(element, ionisation, transition, repository_path=None):
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-    except FileNotFoundError:
+        return content[_encode_transition(transition)]
+    except (FileNotFoundError, KeyError):
         raise RuntimeError('Requested wavelength (element={}, ionisation={}, transition={})'
                            ' is not available.'.format(element.symbol, ionisation, transition))
-
-    return content[_encode_transition(transition)]
 
 
 def update_beam_cx_rates(rates, repository_path=None):
@@ -196,11 +195,10 @@ def get_beam_cx_rates(donor_ion, receiver_ion, receiver_ionisation, transition, 
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-    except FileNotFoundError:
+        rates = content[_encode_transition(transition)]
+    except (FileNotFoundError, KeyError):
         raise RuntimeError('Requested beam CX effective emission rates (donor={}, receiver={}, ionisation={}, transition={})'
                            ' are not available.'.format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
-
-    rates = content[_encode_transition(transition)]
 
     # sanitise data and convert to (more useful) numpy arrays rather than lists
     for rate in rates.values():
@@ -312,12 +310,10 @@ def _get_pec_rate(cls, element, ionisation, transition, repository_path=None):
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-    except FileNotFoundError:
+        d = content[_encode_transition(transition)]
+    except (FileNotFoundError, KeyError):
         raise RuntimeError('Requested PEC rate (class={}, element={}, ionisation={}, transition={})'
                            ' is not available.'.format(cls, element.symbol, ionisation, transition))
-
-    # extract raw rate data
-    d = content[_encode_transition(transition)]
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
