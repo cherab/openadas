@@ -18,6 +18,7 @@
 import os
 from cherab.core.atomic.elements import *
 from cherab.openadas.install import install_files
+
 install_files(
     {
         'adf12': (

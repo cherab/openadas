@@ -42,18 +42,20 @@ cdef class BeamCXRate(CoreBeamCXRate):
 
         # todo move conversions to data installation
         # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
-        eb = data["ENER"]                                          # eV/amu
-        ti = data["TIEV"]                                          # eV
-        ni = PerCm3ToPerM3.to(data["DENSI"])                       # m^-3
-        zeff = data["ZEFF"]
-        bmag = data["BMAG"]                                        # Tesla
+        eb = data["eb"]                                          # eV/amu
+        ti = data["ti"]                                          # eV
+        ni = data["ni"]                                          # m^-3
+        # ni = PerCm3ToPerM3.to(data["ni"])                        # m^-3
+        zeff = data["z"]                                         # dimensionless
+        bmag = data["b"]                                         # Tesla
 
-        qref = data["QEFREF"]                                      # cm^3/s
-        qeb = PhotonToJ.to(Cm3ToM3.to(data["QENER"]), wavelength)  # W.m^3
-        qti = data["QTIEV"] / qref                                 # dimensionless
-        qni = data["QDENSI"] / qref                                # dimensionless
-        qzeff = data["QZEFF"] / qref                               # dimensionless
-        qbmag = data["QBMAG"] / qref                               # dimensionless
+        qref = data["qref"]                                      # cm^3/s
+        qeb = PhotonToJ.to(data["qeb"], wavelength)              # W.m^3
+        # qeb = PhotonToJ.to(Cm3ToM3.to(data["qeb"]), wavelength)  # W.m^3
+        qti = data["qti"] / qref                                 # dimensionless
+        qni = data["qni"] / qref                                 # dimensionless
+        qzeff = data["qz"] / qref                                # dimensionless
+        qbmag = data["qb"] / qref                                # dimensionless
 
         # interpolate the rate data
         self._eb = Interpolate1DCubic(eb, qeb, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
