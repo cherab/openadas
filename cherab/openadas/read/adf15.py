@@ -17,7 +17,7 @@
 
 import re
 import numpy as np
-from cherab.core.atomic import hydrogen
+from cherab.core.atomic import hydrogen, Element
 from cherab.core.utility import RecursiveDict
 from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3
 
@@ -47,8 +47,13 @@ def read_adf15(element, ionisation, adf_file_path):
     :param element: Element described by ADF file.
     :param ionisation: Ionisation described by ADF file.
     :param adf_file_path: Path to ADF15 file from ADAS root.
-    :return:
+    :return: Dictionary containing rates.
     """
+
+    if not isinstance(element, Element):
+        raise TypeError('The element must be an Element object.')
+
+    ionisation = int(ionisation)
 
     with open(adf_file_path, "r") as file:
 

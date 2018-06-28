@@ -19,7 +19,6 @@
 from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3, PhotonToJ
 
 cimport cython
-
 from cherab.core.math cimport Interpolate1DCubic
 
 
@@ -40,22 +39,26 @@ cdef class BeamCXRate(CoreBeamCXRate):
         self.wavelength = wavelength
         self.raw_data = data
 
-        # todo move conversions to data installation
-        # pre-convert data to W m^3 from Photons s^-1 cm^3 prior to interpolation
+        # pre-convert data to W m^3 from Photons s^-1 m^3 prior to interpolation
         eb = data["eb"]                                          # eV/amu
         ti = data["ti"]                                          # eV
         ni = data["ni"]                                          # m^-3
-        # ni = PerCm3ToPerM3.to(data["ni"])                        # m^-3
         zeff = data["z"]                                         # dimensionless
         bmag = data["b"]                                         # Tesla
 
-        qref = data["qref"]                                      # cm^3/s
+        qref = data["qref"]                                      # m^3/s
         qeb = PhotonToJ.to(data["qeb"], wavelength)              # W.m^3
-        # qeb = PhotonToJ.to(Cm3ToM3.to(data["qeb"]), wavelength)  # W.m^3
         qti = data["qti"] / qref                                 # dimensionless
         qni = data["qni"] / qref                                 # dimensionless
         qzeff = data["qz"] / qref                                # dimensionless
         qbmag = data["qb"] / qref                                # dimensionless
+
+        # store limits of data
+        self.beam_energy_range = eb.min(), eb.max()
+        self.density_range = ni.min(), ni.max()
+        self.temperature_range = ti.min(), ti.max()
+        self.zeff_range = zeff.min(), zeff.max()
+        self.b_field_range = bmag.min(), bmag.max()
 
         # interpolate the rate data
         self._eb = Interpolate1DCubic(eb, qeb, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")

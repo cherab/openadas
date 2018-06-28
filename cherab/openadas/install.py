@@ -16,7 +16,7 @@
 
 import os
 import urllib
-from cherab.openadas.repository import update_pec_rates, update_wavelengths
+from cherab.openadas import repository
 from cherab.openadas.read import *
 
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
@@ -34,8 +34,28 @@ def install_files(configuration, download=False, repository_path=None, adas_path
                 install_adf15(*args, download=download, repository_path=repository_path, adas_path=adas_path)
 
 
-def install_adf12(donor_ion, receiver_ion, receiver_ionisation, rate_files, download=False, repository_path=None, adas_path=None):
-    pass
+def install_adf12(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, file_path, download=False, repository_path=None, adas_path=None):
+    """
+    :param donor_ion: The donor ion element described by the rate file.
+    :param receiver_ion: The receiver ion element described by the rate file.
+    :param receiver_ionisation: The receiver ion ionisation level described by the rate file.
+    :param donor_metastable: The donor ion metastable level.
+    :param file_path: Path relative to ADAS root.
+    :param download: Attempt to download file if not present (Default=True).
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
+    """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # decode file and write out rates
+    rates = read_adf12(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, path)
+    repository.update_beam_cx_rates(rates, repository_path)
+
+    print(' - installed!')
 
 
 # todo: move print calls to logging
@@ -47,7 +67,8 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
     :param ionisation: The ionisation level described by the rate file.
     :param file_path: Path relative to ADAS root.
     :param download: Attempt to download file if not present (Default=True).
-    :return:
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
     """
 
     print('Installing {}...'.format(file_path))
@@ -57,8 +78,8 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
 
     # decode file and write out rates
     rates, wavelengths = read_adf15(element, ionisation, path)
-    update_pec_rates(rates, repository_path)
-    update_wavelengths(wavelengths, repository_path)
+    repository.update_pec_rates(rates, repository_path)
+    repository.update_wavelengths(wavelengths, repository_path)
 
     print(' - installed!')
 
