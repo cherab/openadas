@@ -81,9 +81,9 @@ def parse_adas2x_rate(file):
         'st': np.array(raw['SVT'], np.float64),
 
         'eref': raw['EREF'],
-        'nref': PerCm3ToPerM3.to(raw['NREF']),
+        'nref': PerCm3ToPerM3.to(raw['DREF']),
         'tref': raw['TREF'],
-        'sref': raw['SREF']
+        'sref': raw['SVREF']
     }
 
 

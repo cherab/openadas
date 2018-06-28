@@ -19,6 +19,9 @@ import urllib
 from cherab.openadas import repository
 from cherab.openadas.parse import *
 
+from pprint import pprint
+
+
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
 OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
 
@@ -113,7 +116,8 @@ def install_adf21(beam_species, target_ion, target_ionisation, file_path, downlo
 
     # # decode file and write out rates
     rate = parse_adf21(beam_species, target_ion, target_ionisation, path)
-    repository.update_beam_stopping_rates(rate, repository_path)
+    # repository.update_beam_stopping_rates(rate, repository_path)
+    pprint(rate)
 
     print(' - installed!')
 
@@ -129,18 +133,18 @@ def install_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisatio
     # :param repository_path: Path to the repository in which to install the rates (optional).
     # :param adas_path: Path to ADAS files repository (optional).
     # """
-    #
-    # print('Installing {}...'.format(file_path))
-    # path = _locate_adas_file(file_path, download, adas_path)
-    # if not path:
-    #     raise ValueError('Could not locate the specified ADAS file.')
-    #
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
     # # decode file and write out rates
-    # rates, wavelengths = parse_adf15(element, ionisation, path)
-    # repository.update_pec_rates(rates, repository_path)
-    # repository.update_wavelengths(wavelengths, repository_path)
-    #
-    # print(' - installed!')
+    rate = parse_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, path)
+    # repository.update_beam_stopping_rates(rate, repository_path)
+    pprint(rate)
+
+    print(' - installed!')
 
 
 # todo: move print calls to logging
@@ -154,18 +158,18 @@ def install_adf22bme(beam_species, target_ion, target_ionisation, transition, fi
     # :param repository_path: Path to the repository in which to install the rates (optional).
     # :param adas_path: Path to ADAS files repository (optional).
     # """
-    #
-    # print('Installing {}...'.format(file_path))
-    # path = _locate_adas_file(file_path, download, adas_path)
-    # if not path:
-    #     raise ValueError('Could not locate the specified ADAS file.')
-    #
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
     # # decode file and write out rates
-    # rates, wavelengths = parse_adf15(element, ionisation, path)
-    # repository.update_pec_rates(rates, repository_path)
-    # repository.update_wavelengths(wavelengths, repository_path)
-    #
-    # print(' - installed!')
+    rate = parse_adf22bme(beam_species, target_ion, target_ionisation, transition, path)
+    # repository.update_beam_stopping_rates(rate, repository_path)
+    pprint(rate)
+
+    print(' - installed!')
 
 
 def _locate_adas_file(file_path, download=False, adas_path=None):

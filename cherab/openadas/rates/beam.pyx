@@ -39,7 +39,6 @@ cdef class BeamStoppingRate(CoreBeamStoppingRate):
         e = data["e"]                          # eV/amu
         n = data["n"]                          # m^-3
         t = data["t"]                          # eV
-
         sen = data["sen"]                      # m^3/s
         st = data["st"] / data["sref"]         # dimensionless
 
@@ -94,7 +93,6 @@ cdef class BeamPopulationRate(CoreBeamPopulationRate):
         e = data["e"]                          # eV/amu
         n = data["n"]                          # m^-3
         t = data["t"]                          # eV
-
         sen = data["sen"]                      # dimensionless
         st = data["st"] / data["sref"]         # dimensionless
 
@@ -137,6 +135,7 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
     The beam emission coefficient interpolation class.
 
     :param data: A dictionary holding the beam coefficient data.
+    :param wavelength: The natural wavelength of the emission line associated with the rate data in nm.
     :param extrapolate: Set to True to enable extrapolation, False to disable (default).
     """
 
@@ -149,7 +148,6 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
         e = data["e"]                                   # eV/amu
         n = data["n"]                                   # m^-3
         t = data["t"]                                   # eV
-
         sen = PhotonToJ.to(data["sen"], wavelength)     # W.m^3/s
         st = data["st"] / data["sref"]                  # dimensionless
 
