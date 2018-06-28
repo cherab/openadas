@@ -16,7 +16,7 @@
 
 # cython: language_level=3
 
-from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3, PhotonToJ
+from cherab.core.utility.conversion import PhotonToJ
 
 cimport cython
 from cherab.core.math cimport Interpolate1DCubic, Interpolate2DCubic

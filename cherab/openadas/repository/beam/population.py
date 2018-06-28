@@ -21,14 +21,15 @@ from cherab.core.atomic import Element
 from ..utility import DEFAULT_REPOSITORY_PATH, valid_ionisation
 
 """
-Utilities for managing the local rate repository - beam stopping section.
+Utilities for managing the local rate repository - beam population section.
 """
 
 
-def add_beam_stopping_rate(beam_species, target_ion, target_ionisation, rate, repository_path=None):
+def add_beam_population_rate(beam_species, beam_metastable, target_ion, target_ionisation, rate, repository_path=None):
     """
 
     :param beam_species:
+    :param beam_metastable:
     :param target_ion:
     :param target_ionisation:
     :param rate:
@@ -40,6 +41,9 @@ def add_beam_stopping_rate(beam_species, target_ion, target_ionisation, rate, re
     # sanitise and validate arguments
     if not isinstance(beam_species, Element):
         raise TypeError('The beam_species must be an Element object.')
+
+    if beam_metastable < 0:
+        raise ValueError('Metastable level cannot be less than 0.')
 
     if not isinstance(target_ion, Element):
         raise TypeError('The beam_species must be an Element object.')
@@ -81,7 +85,7 @@ def add_beam_stopping_rate(beam_species, target_ion, target_ionisation, rate, re
     rate['tref'] = float(rate['tref'])
     rate['sref'] = float(rate['sref'])
 
-    path = os.path.join(repository_path, 'beam/stopping/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
+    path = os.path.join(repository_path, 'beam/population/{}/{}/{}/{}.json'.format(beam_species.symbol.lower(), beam_metastable, target_ion.symbol.lower(), target_ionisation))
 
     # create directory structure if missing
     directory = os.path.dirname(path)
@@ -93,31 +97,32 @@ def add_beam_stopping_rate(beam_species, target_ion, target_ionisation, rate, re
         json.dump(rate, f, indent=2, sort_keys=True)
 
 
-def update_beam_stopping_rates(rates, repository_path=None):
+def update_beam_population_rates(rates, repository_path=None):
     """
-    Beam stopping rate file structure
+    Beam population rate file structure
 
-    /beam/stopping/<beam species>/<target ion>/<target_ionisation>.json
+    /beam/population/<beam species>/<beam metastable>/<target ion>/<target_ionisation>.json
 
     Each json file contains a single rate, so it can simply be replaced.
     """
 
-    for beam_species, target_ions in rates.items():
-        for target_ion, target_ionisations in target_ions.items():
-            for target_ionisation, rate in target_ionisations.items():
-                add_beam_stopping_rate(beam_species, target_ion, target_ionisation, rate, repository_path)
+    for beam_species, beam_metastables in rates.items():
+        for beam_metastable, target_ions in beam_metastables.items():
+            for target_ion, target_ionisations in target_ions.items():
+                for target_ionisation, rate in target_ionisations.items():
+                    add_beam_population_rate(beam_species, beam_metastable, target_ion, target_ionisation, rate, repository_path)
 
 
-def get_beam_stopping_rate(beam_species, target_ion, target_ionisation, repository_path=None):
+def get_beam_population_rate(beam_species, beam_metastable, target_ion, target_ionisation, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
-    path = os.path.join(repository_path, 'beam/stopping/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
+    path = os.path.join(repository_path, 'beam/population/{}/{}/{}/{}.json'.format(beam_species.symbol.lower(), beam_metastable, target_ion.symbol.lower(), target_ionisation))
     try:
         with open(path, 'r') as f:
             rate = json.load(f)
     except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested beam stopping rate (beam species={}, target ion={}, target ionisation={}'
-                           ' is not available.'.format(beam_species.symbol, target_ion.symbol, target_ionisation))
+        raise RuntimeError('Requested beam population rate (beam species={}, beam metastable={}, target ion={}, target ionisation={}'
+                           ' is not available.'.format(beam_species.symbol, beam_metastable, target_ion.symbol, target_ionisation))
 
     # convert lists to numpy arrays
     rate['e'] = np.array(rate['e'], np.float64)
