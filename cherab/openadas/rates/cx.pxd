@@ -25,7 +25,7 @@ cdef class BeamCXRate(CoreBeamCXRate):
         double wavelength
         int donor_metastable
         Function1D _eb, _ti, _ni, _zeff, _b
-        readonly tuple beam_energy_range,
+        readonly tuple beam_energy_range
         readonly tuple density_range
         readonly tuple temperature_range
         readonly tuple zeff_range

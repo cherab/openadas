@@ -63,7 +63,7 @@ def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rates = parse_adf12(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, path)
+    rates = parse_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, path)
     repository.update_beam_cx_rates(rates, repository_path)
 
     print(' - installed!')

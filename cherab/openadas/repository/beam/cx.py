@@ -19,7 +19,7 @@ import json
 import numpy as np
 from cherab.core.utility import RecursiveDict
 from cherab.core.atomic import Element
-from .utility import DEFAULT_REPOSITORY_PATH, valid_ionisation, encode_transition
+from ..utility import DEFAULT_REPOSITORY_PATH, valid_ionisation, encode_transition
 
 """
 Utilities for managing the local rate repository - beam rate section.

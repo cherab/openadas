@@ -20,11 +20,12 @@ from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3
 from .utility import readvalues
 
 
-def parse_adf12(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, adf_file_path):
+def parse_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, adf_file_path):
     """
     Opens and parses ADAS ADF12 data files.
 
     :param donor_ion: The donor ion element described by the rate file.
+    :param donor_metastable: The donor ion metastable level.
     :param receiver_ion: The receiver ion element described by the rate file.
     :param receiver_ionisation: The receiver ion ionisation level described by the rate file.
     :param adf_file_path: Path to ADF15 file from ADAS root.

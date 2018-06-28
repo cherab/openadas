@@ -14,8 +14,77 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-
 import numpy as np
+from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3
+
+
+def parse_adas2x_rate(file):
+    """
+    Read and parse data from the supplied adf21/22 file stream.
+
+    :param file: A file stream.
+    :return: A dictionary.
+    """
+
+    raw = {}
+
+    line = file.readline()
+    raw['ZT'] = int(line[3:5])                  # target ion charge (int)
+    raw['SVREF'] = float(line[13:22])           # coefficient at reference conditions (float)
+    raw['SPEC'] = line[29:31]                   # target element (string)
+    raw['DATE'] = line[38:46]                   # date of calculation (string)
+    raw['CODE'] = line[53:-1]                   # processing code (string)
+
+    file.readline()  # jump the hyphen line
+
+    line = file.readline()
+    neb = int(line[1:5])
+    ndt = int(line[6:10])
+    raw['TREF'] = float(line[17:26])            # reference target temperature (float)
+
+    file.readline()  # jump the hyphen line
+
+    raw['EB'] = readvalues(file, neb, 8)        # beam energy coordinates (1D array)
+    raw['DT'] = readvalues(file, ndt, 8)        # target density coordinates (1D array)
+
+    file.readline()  # jump the hyphen line
+
+    sv = np.zeros((neb, ndt))
+    for index in range(ndt):
+        sv[:, index] = readvalues(file, neb, 8)
+
+    # coefficients at beam energy coordinates (first index) and target density coordinates (second index) (2D array)
+    raw['SV'] = sv
+
+    file.readline()  # jump the hyphen line
+
+    line = file.readline()
+    ntt = int(line[1:5])
+    raw['EREF'] = float(line[12:21])            # reference beam energy (float)
+    raw['DREF'] = float(line[28:37])            # reference target density (float)
+
+    file.readline()  # jump the hyphen line
+
+    raw['TT'] = readvalues(file, ntt, 8)        # target temperature coordinates (1D array)
+
+    file.readline()  # jump the hyphen line
+
+    raw['SVT'] = readvalues(file, ntt, 8)       # coefficients at target temperature coordinates (1D array)
+
+    # return essential data and convert units from cm^3 to m^3
+    return {
+        'e': np.array(raw['EB'], np.float64),
+        'n': PerCm3ToPerM3.to(np.array(raw['DT'], np.float64)),
+        't': np.array(raw['TT'], np.float64),
+
+        'sen': Cm3ToM3.to(np.array(raw['SV'], np.float64)),
+        'st': np.array(raw['SVT'], np.float64),
+
+        'eref': raw['EREF'],
+        'nref': PerCm3ToPerM3.to(raw['NREF']),
+        'tref': raw['TREF'],
+        'sref': raw['SREF']
+    }
 
 
 def readvalues(file, nb_values, values_per_line, type=float):

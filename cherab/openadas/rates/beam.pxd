@@ -26,6 +26,9 @@ cdef class BeamStoppingRate(CoreBeamStoppingRate):
         dict raw_data
         Function2D _npl_eb
         Function1D _tp
+        tuple beam_energy_range
+        tuple density_range
+        tuple temperature_range
 
 
 cdef class BeamPopulationRate(CoreBeamPopulationRate):
@@ -34,6 +37,9 @@ cdef class BeamPopulationRate(CoreBeamPopulationRate):
         dict raw_data
         Function2D _npl_eb
         Function1D _tp
+        tuple beam_energy_range
+        tuple density_range
+        tuple temperature_range
 
 
 cdef class BeamEmissionRate(CoreBeamEmissionRate):
@@ -42,4 +48,7 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
         dict raw_data
         Function2D _npl_eb
         Function1D _tp
+        tuple beam_energy_range
+        tuple density_range
+        tuple temperature_range
 

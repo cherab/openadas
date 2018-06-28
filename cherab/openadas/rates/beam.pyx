@@ -35,18 +35,22 @@ cdef class BeamStoppingRate(CoreBeamStoppingRate):
 
         self.raw_data = data
 
-        # todo: move density conversion to adas file parser
-        # pre-convert data to m^3/s from cm^3/s prior to interpolation
-        eb = data["EB"]                                     # eV/amu
-        dt = PerCm3ToPerM3.to(data["DT"])                   # m^-3
-        tt = data["TT"]                                     # eV
+        # unpack
+        e = data["e"]                          # eV/amu
+        n = data["n"]                          # m^-3
+        t = data["t"]                          # eV
 
-        sv = Cm3ToM3.to(data["SV"])                         # m^3/s
-        svt = data["SVT"] / data["SVREF"]                   # dimensionless
+        sen = data["sen"]                      # m^3/s
+        st = data["st"] / data["sref"]         # dimensionless
+
+        # store limits of data
+        self.beam_energy_range = e.min(), e.max()
+        self.density_range = n.min(), n.max()
+        self.temperature_range = t.min(), t.max()
 
         # interpolate
-        self._npl_eb = Interpolate2DCubic(eb, dt, sv, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
-        self._tp = Interpolate1DCubic(tt, svt, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
+        self._npl_eb = Interpolate2DCubic(e, n, sen, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
+        self._tp = Interpolate1DCubic(t, st, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
 
     cpdef double evaluate(self, double energy, double density, double temperature) except? -1e999:
         """
@@ -63,11 +67,11 @@ cdef class BeamStoppingRate(CoreBeamStoppingRate):
         cdef double val
 
         val = self._npl_eb.evaluate(energy, density)
-        if val < 0:
+        if val <= 0:
             return 0.0
 
         val *= self._tp.evaluate(temperature)
-        if val < 0:
+        if val <= 0:
             return 0.0
 
         return val
@@ -86,18 +90,22 @@ cdef class BeamPopulationRate(CoreBeamPopulationRate):
 
         self.raw_data = data
 
-        # todo: move density conversion to adas file parser
-        # pre-convert data to m^3/s from cm^3/s prior to interpolation
-        eb = data["EB"]                                     # eV/amu
-        dt = PerCm3ToPerM3.to(data["DT"])                   # m^-3
-        tt = data["TT"]                                     # eV
+        # unpack
+        e = data["e"]                          # eV/amu
+        n = data["n"]                          # m^-3
+        t = data["t"]                          # eV
 
-        sv = data["SV"]                                     # dimensionless
-        svt = data["SVT"] / data["SVREF"]                   # dimensionless
+        sen = data["sen"]                      # dimensionless
+        st = data["st"] / data["sref"]         # dimensionless
+
+        # store limits of data
+        self.beam_energy_range = e.min(), e.max()
+        self.density_range = n.min(), n.max()
+        self.temperature_range = t.min(), t.max()
 
         # interpolate
-        self._npl_eb = Interpolate2DCubic(eb, dt, sv, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
-        self._tp = Interpolate1DCubic(tt, svt, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
+        self._npl_eb = Interpolate2DCubic(e, n, sen, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
+        self._tp = Interpolate1DCubic(t, st, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
 
     cpdef double evaluate(self, double energy, double density, double temperature) except? -1e999:
         """
@@ -114,12 +122,11 @@ cdef class BeamPopulationRate(CoreBeamPopulationRate):
         cdef double val
 
         val = self._npl_eb.evaluate(energy, density)
-        if val < 0:
+        if val <= 0:
             return 0.0
 
         val *= self._tp.evaluate(temperature)
-
-        if val < 0:
+        if val <= 0:
             return 0.0
 
         return val
@@ -138,18 +145,22 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
 
         self.raw_data = data
 
-        # todo: move density conversion to adas file parser
-        # pre-convert data to m^3/s from cm^3/s prior to interpolation
-        eb = data["EB"]                                     # eV/amu
-        dt = PerCm3ToPerM3.to(data["DT"])                   # m^-3
-        tt = data["TT"]                                     # eV
+        # unpack
+        e = data["e"]                                   # eV/amu
+        n = data["n"]                                   # m^-3
+        t = data["t"]                                   # eV
 
-        sv = PhotonToJ.to(Cm3ToM3.to(data["SV"]), wavelength) # W.m^3/s
-        svt = data["SVT"] / data["SVREF"]                     # dimensionless
+        sen = PhotonToJ.to(data["sen"], wavelength)     # W.m^3/s
+        st = data["st"] / data["sref"]                  # dimensionless
+
+        # store limits of data
+        self.beam_energy_range = e.min(), e.max()
+        self.density_range = n.min(), n.max()
+        self.temperature_range = t.min(), t.max()
 
         # interpolate
-        self._npl_eb = Interpolate2DCubic(eb, dt, sv, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
-        self._tp = Interpolate1DCubic(tt, svt, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
+        self._npl_eb = Interpolate2DCubic(e, n, sen, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
+        self._tp = Interpolate1DCubic(t, st, tolerate_single_value=True, extrapolate=extrapolate, extrapolation_type="quadratic")
 
     cpdef double evaluate(self, double energy, double density, double temperature) except? -1e999:
         """
@@ -166,11 +177,11 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
         cdef double val
 
         val = self._npl_eb.evaluate(energy, density)
-        if val < 0:
+        if val <= 0:
             return 0.0
 
         val *= self._tp.evaluate(temperature)
-        if val < 0:
+        if val <= 0:
             return 0.0
 
         return val
