@@ -20,7 +20,7 @@ from .utility import parse_adas2x_rate
 
 def parse_adf21(beam_species, target_ion, target_ionisation, adf_file_path):
     """
-    Opens and parses ADAS ADF15 data files.
+    Opens and parses ADAS ADF21 data files.
 
     :param beam_species: Element object describing the beam species.
     :param target_ion: Element object describing the target ion species.

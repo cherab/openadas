@@ -19,6 +19,7 @@ import urllib
 from cherab.openadas import repository
 from cherab.openadas.parse import *
 
+# todo: development import, remove!
 from pprint import pprint
 
 
@@ -46,6 +47,7 @@ def install_files(configuration, download=False, repository_path=None, adas_path
                 install_adf22bme(*args, download=download, repository_path=repository_path, adas_path=adas_path)
 
 
+# todo: move print calls to logging
 def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, file_path, download=False, repository_path=None, adas_path=None):
     """
     Adds the rates in the ADF12 file to the repository.
@@ -116,8 +118,7 @@ def install_adf21(beam_species, target_ion, target_ionisation, file_path, downlo
 
     # # decode file and write out rates
     rate = parse_adf21(beam_species, target_ion, target_ionisation, path)
-    # repository.update_beam_stopping_rates(rate, repository_path)
-    pprint(rate)
+    repository.update_beam_stopping_rates(rate, repository_path)
 
     print(' - installed!')
 
@@ -141,8 +142,7 @@ def install_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisatio
 
     # # decode file and write out rates
     rate = parse_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, path)
-    # repository.update_beam_stopping_rates(rate, repository_path)
-    pprint(rate)
+    repository.update_beam_population_rates(rate, repository_path)
 
     print(' - installed!')
 
@@ -166,8 +166,7 @@ def install_adf22bme(beam_species, target_ion, target_ionisation, transition, fi
 
     # # decode file and write out rates
     rate = parse_adf22bme(beam_species, target_ion, target_ionisation, transition, path)
-    # repository.update_beam_stopping_rates(rate, repository_path)
-    pprint(rate)
+    repository.update_beam_emission_rates(rate, repository_path)
 
     print(' - installed!')
 

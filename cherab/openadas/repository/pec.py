@@ -30,7 +30,7 @@ def update_pec_rates(rates, repository_path=None):
     """
     PEC rate file structure
 
-    /pec/CLASS/ELEMENT/IONISATION.json
+    /pec/<class>/<element>/<ionisation>.json
     """
 
     valid_classes = [

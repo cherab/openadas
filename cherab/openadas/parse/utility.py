@@ -78,12 +78,12 @@ def parse_adas2x_rate(file):
         't': np.array(raw['TT'], np.float64),
 
         'sen': Cm3ToM3.to(np.array(raw['SV'], np.float64)),
-        'st': np.array(raw['SVT'], np.float64),
+        'st': Cm3ToM3.to(np.array(raw['SVT'], np.float64)),
 
         'eref': raw['EREF'],
         'nref': PerCm3ToPerM3.to(raw['DREF']),
         'tref': raw['TREF'],
-        'sref': raw['SVREF']
+        'sref': Cm3ToM3.to(raw['SVREF'])
     }
 
 

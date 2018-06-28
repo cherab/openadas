@@ -20,7 +20,7 @@ from .utility import parse_adas2x_rate
 
 def parse_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, adf_file_path):
     """
-    Opens and parses ADAS ADF15 data files.
+    Opens and parses ADAS ADF22 BMP data files.
 
     :param beam_species: Element object describing the beam species.
     :param beam_metastable: The metastable level of the beam species.
@@ -38,7 +38,7 @@ def parse_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation,
 
 def parse_adf22bme(beam_species, target_ion, target_ionisation, transition, adf_file_path):
     """
-    Opens and parses ADAS ADF15 data files.
+    Opens and parses ADAS ADF22 BME data files.
 
     :param beam_species: Element object describing the beam species.
     :param target_ion: Element object describing the target ion species.

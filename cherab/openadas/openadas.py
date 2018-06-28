@@ -69,19 +69,20 @@ class OpenADAS(AtomicData):
             rates.append(BeamCXRate(donor_metastable, wavelength, rate_data, extrapolate=self._permit_extrapolation))
         return rates
 
-    # def beam_stopping_rate(self, beam_ion, plasma_ion, ionisation):
-    #
-    #     # extract element from isotope
-    #     if isinstance(beam_ion, Isotope):
-    #         beam_ion = beam_ion.element
-    #
-    #     if isinstance(plasma_ion, Isotope):
-    #         plasma_ion = plasma_ion.element
-    #
-    #     # locate data file
+    def beam_stopping_rate(self, beam_ion, plasma_ion, ionisation):
 
-    #     # load and interpolate data
-    #     return BeamStoppingRate(adf21(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
+        # extract element from isotope
+        if isinstance(beam_ion, Isotope):
+            beam_ion = beam_ion.element
+
+        if isinstance(plasma_ion, Isotope):
+            plasma_ion = plasma_ion.element
+
+        # locate data file
+        data = repository.get_beam_stopping_rate(beam_ion, plasma_ion, ionisation)
+
+        # load and interpolate data
+        return BeamStoppingRate(data, extrapolate=self._permit_extrapolation)
 
     # def beam_population_rate(self, beam_ion, metastable, plasma_ion, ionisation):
     #

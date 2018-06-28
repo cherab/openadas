@@ -22,7 +22,7 @@ from cherab.core.atomic import Element
 from ..utility import DEFAULT_REPOSITORY_PATH, valid_ionisation, encode_transition
 
 """
-Utilities for managing the local rate repository - beam rate section.
+Utilities for managing the local rate repository - beam cx rate section.
 """
 
 
