@@ -56,6 +56,7 @@ install_files(
             # (nitrogen,  2, 'adf15/pec96#n/pec96#n_vsu#n2.dat'),    #TODO: OPENADAS DATA CORRUPT
         ),
         'adf21': (
+            # (beam_species, target_ion, target_ionisation, rate file)
             (hydrogen, hydrogen,  1,  "adf21/bms97#h/bms97#h_h1.dat"),
             (hydrogen, helium,    2,  "adf21/bms97#h/bms97#h_he2.dat"),
             (hydrogen, lithium,   3,  "adf21/bms97#h/bms97#h_li3.dat"),
@@ -67,7 +68,7 @@ install_files(
             (hydrogen, fluorine,  9,  "adf21/bms97#h/bms97#h_f9.dat"),
             (hydrogen, neon,      10, "adf21/bms97#h/bms97#h_ne10.dat"),
         ),
-        'adf22-bmp': (
+        'adf22bmp': (
             # (beam species, beam metastable, target ion, target ionisation, rate file)
             (hydrogen, 2, hydrogen,  1,  "adf22/bmp97#h/bmp97#h_2_h1.dat"),
             (hydrogen, 3, hydrogen,  1,  "adf22/bmp97#h/bmp97#h_3_h1.dat"),
@@ -100,7 +101,7 @@ install_files(
             (hydrogen, 3, neon,      10, "adf22/bmp97#h/bmp97#h_3_ne10.dat"),
             (hydrogen, 4, neon,      10, "adf22/bmp97#h/bmp97#h_4_ne10.dat"),
         ),
-        'adf22-bme': (
+        'adf22bme': (
             # (beam species, target_ion, target_ionisation, (initial_level, final_level), rate file)
             (hydrogen, hydrogen,  1,  (3, 2), "adf22/bme10#h/bme10#h_h1.dat"),
             (hydrogen, helium,    2,  (3, 2), "adf22/bme97#h/bme97#h_he2.dat"),

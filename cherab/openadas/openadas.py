@@ -41,6 +41,7 @@ class OpenADAS(AtomicData):
     def wavelength(self, ion, ionisation, transition):
         """
         :param ion: Element object defining the ion type.
+        :param ionisation: Ionisation level of the ion.
         :param transition: Tuple containing (initial level, final level)
         :return: Wavelength in nanometers.
         """

@@ -17,7 +17,7 @@
 import os
 import urllib
 from cherab.openadas import repository
-from cherab.openadas.read import *
+from cherab.openadas.parse import *
 
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
 OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
@@ -32,14 +32,25 @@ def install_files(configuration, download=False, repository_path=None, adas_path
         if adf.lower() == 'adf15':
             for args in configuration[adf]:
                 install_adf15(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf21':
+            for args in configuration[adf]:
+                install_adf21(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf22bmp':
+            for args in configuration[adf]:
+                install_adf22bmp(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf22bme':
+            for args in configuration[adf]:
+                install_adf22bme(*args, download=download, repository_path=repository_path, adas_path=adas_path)
 
 
-def install_adf12(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, file_path, download=False, repository_path=None, adas_path=None):
+def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, file_path, download=False, repository_path=None, adas_path=None):
     """
+    Adds the rates in the ADF12 file to the repository.
+
     :param donor_ion: The donor ion element described by the rate file.
+    :param donor_metastable: The donor ion metastable level.
     :param receiver_ion: The receiver ion element described by the rate file.
     :param receiver_ionisation: The receiver ion ionisation level described by the rate file.
-    :param donor_metastable: The donor ion metastable level.
     :param file_path: Path relative to ADAS root.
     :param download: Attempt to download file if not present (Default=True).
     :param repository_path: Path to the repository in which to install the rates (optional).
@@ -52,7 +63,7 @@ def install_adf12(donor_ion, receiver_ion, receiver_ionisation, donor_metastable
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rates = read_adf12(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, path)
+    rates = parse_adf12(donor_ion, receiver_ion, receiver_ionisation, donor_metastable, path)
     repository.update_beam_cx_rates(rates, repository_path)
 
     print(' - installed!')
@@ -77,11 +88,84 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rates, wavelengths = read_adf15(element, ionisation, path)
+    rates, wavelengths = parse_adf15(element, ionisation, path)
     repository.update_pec_rates(rates, repository_path)
     repository.update_wavelengths(wavelengths, repository_path)
 
     print(' - installed!')
+
+
+# todo: move print calls to logging
+def install_adf21(beam_species, target_ion, target_ionisation, file_path, download=False, repository_path=None, adas_path=None):
+    # """
+    # Adds the rate defined in an ADF21 file to the repository.
+    #
+    # :param file_path: Path relative to ADAS root.
+    # :param download: Attempt to download file if not present (Default=True).
+    # :param repository_path: Path to the repository in which to install the rates (optional).
+    # :param adas_path: Path to ADAS files repository (optional).
+    # """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # # decode file and write out rates
+    rate = parse_adf21(beam_species, target_ion, target_ionisation, path)
+    repository.update_beam_stopping_rates(rate, repository_path)
+
+    print(' - installed!')
+
+
+# todo: move print calls to logging
+def install_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, file_path, download=False, repository_path=None, adas_path=None):
+    pass
+    # """
+    # Adds the rate defined in an ADF21 file to the repository.
+    #
+    # :param file_path: Path relative to ADAS root.
+    # :param download: Attempt to download file if not present (Default=True).
+    # :param repository_path: Path to the repository in which to install the rates (optional).
+    # :param adas_path: Path to ADAS files repository (optional).
+    # """
+    #
+    # print('Installing {}...'.format(file_path))
+    # path = _locate_adas_file(file_path, download, adas_path)
+    # if not path:
+    #     raise ValueError('Could not locate the specified ADAS file.')
+    #
+    # # decode file and write out rates
+    # rates, wavelengths = parse_adf15(element, ionisation, path)
+    # repository.update_pec_rates(rates, repository_path)
+    # repository.update_wavelengths(wavelengths, repository_path)
+    #
+    # print(' - installed!')
+
+
+# todo: move print calls to logging
+def install_adf22bme(beam_species, target_ion, target_ionisation, transition, file_path, download=False, repository_path=None, adas_path=None):
+    pass
+    # """
+    # Adds the rate defined in an ADF21 file to the repository.
+    #
+    # :param file_path: Path relative to ADAS root.
+    # :param download: Attempt to download file if not present (Default=True).
+    # :param repository_path: Path to the repository in which to install the rates (optional).
+    # :param adas_path: Path to ADAS files repository (optional).
+    # """
+    #
+    # print('Installing {}...'.format(file_path))
+    # path = _locate_adas_file(file_path, download, adas_path)
+    # if not path:
+    #     raise ValueError('Could not locate the specified ADAS file.')
+    #
+    # # decode file and write out rates
+    # rates, wavelengths = parse_adf15(element, ionisation, path)
+    # repository.update_pec_rates(rates, repository_path)
+    # repository.update_wavelengths(wavelengths, repository_path)
+    #
+    # print(' - installed!')
 
 
 def _locate_adas_file(file_path, download=False, adas_path=None):

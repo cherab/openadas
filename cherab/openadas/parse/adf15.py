@@ -40,7 +40,7 @@ _L_LOOKUP = {
 }
 
 
-def read_adf15(element, ionisation, adf_file_path):
+def parse_adf15(element, ionisation, adf_file_path):
     """
     Opens and parses ADAS ADF15 data files.
 

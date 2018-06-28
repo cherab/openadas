@@ -19,7 +19,6 @@
 from cherab.core.utility.conversion import Cm3ToM3, PerCm3ToPerM3, PhotonToJ
 
 cimport cython
-
 from cherab.core.math cimport Interpolate1DCubic, Interpolate2DCubic
 
 
@@ -36,6 +35,7 @@ cdef class BeamStoppingRate(CoreBeamStoppingRate):
 
         self.raw_data = data
 
+        # todo: move density conversion to adas file parser
         # pre-convert data to m^3/s from cm^3/s prior to interpolation
         eb = data["EB"]                                     # eV/amu
         dt = PerCm3ToPerM3.to(data["DT"])                   # m^-3
@@ -86,6 +86,7 @@ cdef class BeamPopulationRate(CoreBeamPopulationRate):
 
         self.raw_data = data
 
+        # todo: move density conversion to adas file parser
         # pre-convert data to m^3/s from cm^3/s prior to interpolation
         eb = data["EB"]                                     # eV/amu
         dt = PerCm3ToPerM3.to(data["DT"])                   # m^-3
@@ -137,6 +138,7 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
 
         self.raw_data = data
 
+        # todo: move density conversion to adas file parser
         # pre-convert data to m^3/s from cm^3/s prior to interpolation
         eb = data["EB"]                                     # eV/amu
         dt = PerCm3ToPerM3.to(data["DT"])                   # m^-3
