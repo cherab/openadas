@@ -15,3 +15,6 @@
 # under the Licence.
 
 from .openadas import OpenADAS
+from . import install
+from . import repository
+

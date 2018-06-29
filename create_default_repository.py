@@ -15,7 +15,6 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-import os
 from cherab.core.utility import RecursiveDict
 from cherab.core.atomic.elements import *
 from cherab.openadas.install import install_files
@@ -24,6 +23,30 @@ from cherab.openadas import repository
 # install a common selection of open adas files
 install_files(
     {
+        # 'adf11plt': (
+        #     (hydrogen, "adf11/plt12/plt12_h.dat"),
+        #     (helium, "adf11/plt96/plt96_he.dat"),
+        #     (lithium, "adf11/plt96/plt96_li.dat"),
+        #     (beryllium, "adf11/plt96/plt96_be.dat"),
+        #     (carbon, "adf11/plt96/plt96_c.dat"),
+        #     (nitrogen, "adf11/plt96/plt96_n.dat"),
+        #     (oxygen,  "adf11/plt96/plt96_o.dat"),
+        #     (neon, "adf11/plt96/plt96_ne.dat"),
+        #     (argon, "adf11/plt40/plt40_ar.dat"),
+        #     (krypton, "adf11/plt89/plt89_kr.dat")
+        # ),
+        # 'adf11prb': (
+        #     (hydrogen, "adf11/prb12/prb12_h.dat"),
+        #     (helium, "adf11/prb96/prb96_he.dat"),
+        #     (lithium, "adf11/prb96/prb96_li.dat"),
+        #     (beryllium, "adf11/prb96/prb96_be.dat"),
+        #     (carbon, "adf11/prb96/prb96_c.dat"),
+        #     (nitrogen, "adf11/prb96/prb96_n.dat"),
+        #     (oxygen, "adf11/prb96/prb96_o.dat"),
+        #     (neon, "adf11/prb96/prb96_ne.dat"),
+        #     (argon, "adf11/prb89/prb89_ar.dat"),
+        #     (krypton, "adf11/prb89/prb89_kr.dat")
+        # ),
         'adf12': (
             # (donor, receiver, ionisation, donor_metastable, rate file)
             (hydrogen, 1, hydrogen,  1, 'adf12/qef93#h/qef93#h_h1.dat'),
