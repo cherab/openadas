@@ -9,6 +9,7 @@ import multiprocessing
 threads = multiprocessing.cpu_count()
 force = False
 profile = False
+install_rates = False
 
 if "--force" in sys.argv:
     force = True
@@ -17,6 +18,10 @@ if "--force" in sys.argv:
 if "--profile" in sys.argv:
     profile = True
     del sys.argv[sys.argv.index("--profile")]
+
+if "--install-rates" in sys.argv:
+    install_rates = True
+    del sys.argv[sys.argv.index("--install-rates")]
 
 compilation_includes = [".", numpy.get_include()]
 
@@ -45,5 +50,13 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     ext_modules=cythonize(extensions, nthreads=threads, force=force, compiler_directives=directives)
+
 )
+
+# setup a rate repository with some common defaults
+if install_rates:
+    try:
+        import create_default_repository
+    except ImportError:
+        pass
 

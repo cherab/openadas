@@ -71,8 +71,6 @@ def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation
     rates = parse_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, path)
     repository.update_beam_cx_rates(rates, repository_path)
 
-    print(' - installed!')
-
 
 # todo: move print calls to logging
 def install_adf15(element, ionisation, file_path, download=False, repository_path=None, adas_path=None):
@@ -97,8 +95,6 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
     repository.update_pec_rates(rates, repository_path)
     repository.update_wavelengths(wavelengths, repository_path)
 
-    print(' - installed!')
-
 
 # todo: move print calls to logging
 def install_adf21(beam_species, target_ion, target_ionisation, file_path, download=False, repository_path=None, adas_path=None):
@@ -119,8 +115,6 @@ def install_adf21(beam_species, target_ion, target_ionisation, file_path, downlo
     # # decode file and write out rates
     rate = parse_adf21(beam_species, target_ion, target_ionisation, path)
     repository.update_beam_stopping_rates(rate, repository_path)
-
-    print(' - installed!')
 
 
 # todo: move print calls to logging
@@ -144,8 +138,6 @@ def install_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisatio
     rate = parse_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, path)
     repository.update_beam_population_rates(rate, repository_path)
 
-    print(' - installed!')
-
 
 # todo: move print calls to logging
 def install_adf22bme(beam_species, target_ion, target_ionisation, transition, file_path, download=False, repository_path=None, adas_path=None):
@@ -167,8 +159,6 @@ def install_adf22bme(beam_species, target_ion, target_ionisation, transition, fi
     # # decode file and write out rates
     rate = parse_adf22bme(beam_species, target_ion, target_ionisation, transition, path)
     repository.update_beam_emission_rates(rate, repository_path)
-
-    print(' - installed!')
 
 
 def _locate_adas_file(file_path, download=False, adas_path=None):
@@ -196,7 +186,7 @@ def _locate_adas_file(file_path, download=False, adas_path=None):
                 os.makedirs(directory)
 
             # TODO: move print to logging
-            print(" - downloading ADF file '{}' to '{}'".format(file_path, target))
+            # print(" - downloading ADF file '{}' to '{}'".format(file_path, target))
 
             url = urllib.parse.urljoin(OPENADAS_FILE_URL, file_path.replace('#', '][').lstrip('/'))
             urllib.request.urlretrieve(url, target)
