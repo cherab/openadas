@@ -101,20 +101,20 @@ install_files(
             (hydrogen, 3, neon,      10, "adf22/bmp97#h/bmp97#h_3_ne10.dat"),
             (hydrogen, 4, neon,      10, "adf22/bmp97#h/bmp97#h_4_ne10.dat"),
         ),
-        'adf22bme': (
-            # (beam species, target_ion, target_ionisation, (initial_level, final_level), rate file)
-            (hydrogen, hydrogen,  1,  (3, 2), "adf22/bme10#h/bme10#h_h1.dat"),
-            (hydrogen, helium,    2,  (3, 2), "adf22/bme97#h/bme97#h_he2.dat"),
-            (hydrogen, lithium,   3,  (3, 2), "adf22/bme97#h/bme97#h_li3.dat"),
-            (hydrogen, beryllium, 4,  (3, 2), "adf22/bme97#h/bme97#h_be4.dat"),
-            (hydrogen, boron,     5,  (3, 2), "adf22/bme97#h/bme97#h_b5.dat"),
-            (hydrogen, carbon,    6,  (3, 2), "adf22/bme97#h/bme97#h_c6.dat"),
-            (hydrogen, nitrogen,  7,  (3, 2), "adf22/bme97#h/bme97#h_n7.dat"),
-            (hydrogen, fluorine,  8,  (3, 2), "adf22/bme97#h/bme97#h_f9.dat"),
-            (hydrogen, oxygen,    9,  (3, 2), "adf22/bme97#h/bme97#h_o8.dat"),
-            (hydrogen, neon,      10, (3, 2), "adf22/bme97#h/bme97#h_ne10.dat"),
-            (hydrogen, argon,     11, (3, 2), "adf22/bme99#h/bme99#h_ar18.dat"),
-        )
+        # 'adf22bme': (
+        #     # (beam species, target_ion, target_ionisation, (initial_level, final_level), rate file)
+        #     (hydrogen, hydrogen,  1,  (3, 2), "adf22/bme10#h/bme10#h_h1.dat"),
+        #     (hydrogen, helium,    2,  (3, 2), "adf22/bme97#h/bme97#h_he2.dat"),
+        #     (hydrogen, lithium,   3,  (3, 2), "adf22/bme97#h/bme97#h_li3.dat"),
+        #     (hydrogen, beryllium, 4,  (3, 2), "adf22/bme97#h/bme97#h_be4.dat"),
+        #     (hydrogen, boron,     5,  (3, 2), "adf22/bme97#h/bme97#h_b5.dat"),
+        #     (hydrogen, carbon,    6,  (3, 2), "adf22/bme97#h/bme97#h_c6.dat"),
+        #     (hydrogen, nitrogen,  7,  (3, 2), "adf22/bme97#h/bme97#h_n7.dat"),
+        #     (hydrogen, fluorine,  8,  (3, 2), "adf22/bme97#h/bme97#h_f9.dat"),
+        #     (hydrogen, oxygen,    9,  (3, 2), "adf22/bme97#h/bme97#h_o8.dat"),
+        #     (hydrogen, neon,      10, (3, 2), "adf22/bme97#h/bme97#h_ne10.dat"),
+        #     (hydrogen, argon,     18, (3, 2), "adf22/bme99#h/bme99#h_ar18.dat"),
+        # )
     },
     download=True,
     # adas_path='/home/adas/adas/'
