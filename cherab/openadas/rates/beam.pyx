@@ -21,6 +21,7 @@ from cherab.core.utility.conversion import PhotonToJ
 cimport cython
 from cherab.core.math cimport Interpolate1DCubic, Interpolate2DCubic
 
+# todo: clarify variables
 
 cdef class BeamStoppingRate(CoreBeamStoppingRate):
     """

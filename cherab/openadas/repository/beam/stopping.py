@@ -27,6 +27,7 @@ Utilities for managing the local rate repository - beam stopping section.
 
 def add_beam_stopping_rate(beam_species, target_ion, target_ionisation, rate, repository_path=None):
     """
+    Adds a single beam stopping/excitation rate to the repository.
 
     :param beam_species:
     :param target_ion:
@@ -115,8 +116,8 @@ def get_beam_stopping_rate(beam_species, target_ion, target_ionisation, reposito
     try:
         with open(path, 'r') as f:
             rate = json.load(f)
-    except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested beam stopping rate (beam species={}, target ion={}, target ionisation={}'
+    except FileNotFoundError:
+        raise RuntimeError('Requested beam stopping rate (beam species={}, target ion={}, target ionisation={})'
                            ' is not available.'.format(beam_species.symbol, target_ion.symbol, target_ionisation))
 
     # convert lists to numpy arrays

@@ -14,8 +14,6 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-import os
-
 from cherab.core import AtomicData
 from cherab.core.atomic.elements import Isotope
 from cherab.openadas.repository import DEFAULT_REPOSITORY_PATH
@@ -25,6 +23,9 @@ from cherab.openadas import repository
 
 
 class OpenADAS(AtomicData):
+    """
+
+    """
 
     def __init__(self, data_path=None, permit_extrapolation=False):
 
@@ -51,6 +52,14 @@ class OpenADAS(AtomicData):
         return repository.get_wavelength(ion, ionisation, transition)
 
     def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
+        """
+
+        :param donor_ion:
+        :param receiver_ion:
+        :param receiver_ionisation:
+        :param transition:
+        :return:
+        """
 
         # extract element from isotope
         if isinstance(donor_ion, Isotope):
@@ -70,6 +79,13 @@ class OpenADAS(AtomicData):
         return rates
 
     def beam_stopping_rate(self, beam_ion, plasma_ion, ionisation):
+        """
+
+        :param beam_ion:
+        :param plasma_ion:
+        :param ionisation:
+        :return:
+        """
 
         # extract element from isotope
         if isinstance(beam_ion, Isotope):
@@ -85,6 +101,14 @@ class OpenADAS(AtomicData):
         return BeamStoppingRate(data, extrapolate=self._permit_extrapolation)
 
     def beam_population_rate(self, beam_ion, metastable, plasma_ion, ionisation):
+        """
+
+        :param beam_ion:
+        :param metastable:
+        :param plasma_ion:
+        :param ionisation:
+        :return:
+        """
 
         # extract element from isotope
         if isinstance(beam_ion, Isotope):
@@ -99,21 +123,37 @@ class OpenADAS(AtomicData):
         # load and interpolate data
         return BeamPopulationRate(data, extrapolate=self._permit_extrapolation)
 
-    # def beam_emission_rate(self, beam_ion, plasma_ion, ionisation, transition):
-    #
-    #     wavelength = self.wavelength(beam_ion, 0, transition)
-    #
-    #     # extract element from isotope
-    #     if isinstance(beam_ion, Isotope):
-    #         beam_ion = beam_ion.element
-    #
-    #     if isinstance(plasma_ion, Isotope):
-    #         plasma_ion = plasma_ion.element
-    #
-    #     # load and interpolate data
-    #     return BeamEmissionRate(adf22(os.path.join(self._data_path, filename)), wavelength, extrapolate=self._permit_extrapolation)
+    def beam_emission_rate(self, beam_ion, plasma_ion, ionisation, transition):
+        """
+
+        :param beam_ion:
+        :param plasma_ion:
+        :param ionisation:
+        :param transition:
+        :return:
+        """
+
+        # extract element from isotope
+        if isinstance(beam_ion, Isotope):
+            beam_ion = beam_ion.element
+
+        if isinstance(plasma_ion, Isotope):
+            plasma_ion = plasma_ion.element
+
+        # locate data file
+        data = repository.get_beam_emission_rate(beam_ion, plasma_ion, ionisation, transition)
+
+        # load and interpolate data
+        return BeamEmissionRate(data, extrapolate=self._permit_extrapolation)
 
     def impact_excitation_rate(self, ion, ionisation, transition):
+        """
+
+        :param ion:
+        :param ionisation:
+        :param transition:
+        :return:
+        """
 
         if isinstance(ion, Isotope):
             ion = ion.element
@@ -123,6 +163,13 @@ class OpenADAS(AtomicData):
         return ImpactExcitationRate(wavelength, data, extrapolate=self._permit_extrapolation)
 
     def recombination_rate(self, ion, ionisation, transition):
+        """
+
+        :param ion:
+        :param ionisation:
+        :param transition:
+        :return:
+        """
 
         if isinstance(ion, Isotope):
             ion = ion.element
@@ -131,7 +178,7 @@ class OpenADAS(AtomicData):
         data = repository.get_pec_recombination_rate(ion, ionisation, transition)
         return RecombinationRate(wavelength, data, extrapolate=self._permit_extrapolation)
 
-    # def stage_resolved_line_radiation_rate(self, ion, ionisation):
+    # def stage_resolved_line_ radiation_rate(self, ion, ionisation):
     #
     #     # extract element from isotope
     #     if isinstance(ion, Isotope):

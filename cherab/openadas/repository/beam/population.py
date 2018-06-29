@@ -27,6 +27,7 @@ Utilities for managing the local rate repository - beam population section.
 
 def add_beam_population_rate(beam_species, beam_metastable, target_ion, target_ionisation, rate, repository_path=None):
     """
+    Adds a single beam population rate to the repository.
 
     :param beam_species:
     :param beam_metastable:
@@ -120,8 +121,8 @@ def get_beam_population_rate(beam_species, beam_metastable, target_ion, target_i
     try:
         with open(path, 'r') as f:
             rate = json.load(f)
-    except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested beam population rate (beam species={}, beam metastable={}, target ion={}, target ionisation={}'
+    except FileNotFoundError:
+        raise RuntimeError('Requested beam population rate (beam species={}, beam metastable={}, target ion={}, target ionisation={})'
                            ' is not available.'.format(beam_species.symbol, beam_metastable, target_ion.symbol, target_ionisation))
 
     # convert lists to numpy arrays
