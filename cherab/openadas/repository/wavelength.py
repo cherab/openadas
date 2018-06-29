@@ -25,6 +25,30 @@ Utilities for managing the local rate repository - wavelength section.
 """
 
 
+def add_wavelength(element, ionisation, transition, wavelength, repository_path=None):
+    """
+    Adds a single wavelength to the repository.
+
+    If adding multiple wavelengths, consider using the update_wavelengths()
+    function instead. The update function avoid repeatedly opening and closing
+    the rate files.
+
+    :param element:
+    :param ionisation:
+    :param transition:
+    :param wavelength:
+    :param repository_path:
+    """
+
+    update_wavelengths({
+        element: {
+            ionisation: {
+                transition: wavelength
+            }
+        }
+    }, repository_path)
+
+
 def update_wavelengths(wavelengths, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH

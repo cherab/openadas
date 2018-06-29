@@ -15,10 +15,6 @@
 # under the Licence.
 
 import os
-import json
-import numpy as np
-from cherab.core.utility import RecursiveDict
-from cherab.core.atomic import Element
 
 """
 Utilities for managing the local rate repository.

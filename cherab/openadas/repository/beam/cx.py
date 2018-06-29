@@ -25,6 +25,35 @@ from ..utility import DEFAULT_REPOSITORY_PATH, valid_ionisation, encode_transiti
 Utilities for managing the local rate repository - beam cx rate section.
 """
 
+def add_beam_cx_rate(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, transition, rate, repository_path=None):
+    """
+    Adds a single beam CX rate to the repository.
+
+    If adding multiple rate, consider using the update_beam_cx_rates() function
+    instead. The update function avoid repeatedly opening and closing the rate
+    files.
+
+    :param donor_ion:
+    :param donor_metastable:
+    :param receiver_ion:
+    :param receiver_ionisation:
+    :param rate:
+    :param repository_path:
+    :return:
+    """
+
+    update_beam_cx_rates({
+        donor_ion: {
+            receiver_ion: {
+                receiver_ionisation: {
+                    transition: {
+                        donor_metastable: rate
+                    }
+                }
+            }
+        }
+    }, repository_path)
+
 
 def update_beam_cx_rates(rates, repository_path=None):
     # organisation in repository:

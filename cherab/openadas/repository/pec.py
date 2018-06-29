@@ -26,6 +26,87 @@ Utilities for managing the local rate repository - PEC section.
 """
 
 
+def add_pec_excitation_rate(element, ionisation, transition, rate, repository_path=None):
+    """
+    Adds a single PEC excitation rate to the repository.
+
+    If adding multiple rate, consider using the update_pec_rates() function
+    instead. The update function avoid repeatedly opening and closing the rate
+    files.
+
+    :param element:
+    :param ionisation:
+    :param transition:
+    :param rate:
+    :param repository_path:
+    :return:
+    """
+
+    update_pec_rates({
+        'excitation': {
+            element: {
+                ionisation: {
+                    transition: rate
+                }
+            }
+        }
+    }, repository_path)
+
+
+def add_pec_recombination_rate(element, ionisation, transition, rate, repository_path=None):
+    """
+    Adds a single PEC recombination rate to the repository.
+
+    If adding multiple rate, consider using the update_pec_rates() function
+    instead. The update function avoid repeatedly opening and closing the rate
+    files.
+
+    :param element:
+    :param ionisation:
+    :param transition:
+    :param rate:
+    :param repository_path:
+    :return:
+    """
+
+    update_pec_rates({
+        'recombination': {
+            element: {
+                ionisation: {
+                    transition: rate
+                }
+            }
+        }
+    }, repository_path)
+
+
+def add_pec_thermalcx_rate(element, ionisation, transition, rate, repository_path=None):
+    """
+    Adds a single PEC thermalcx rate to the repository.
+
+    If adding multiple rate, consider using the update_pec_rates() function
+    instead. The update function avoid repeatedly opening and closing the rate
+    files.
+
+    :param element:
+    :param ionisation:
+    :param transition:
+    :param rate:
+    :param repository_path:
+    :return:
+    """
+
+    update_pec_rates({
+        'thermalcx': {
+            element: {
+                ionisation: {
+                    transition: rate
+                }
+            }
+        }
+    }, repository_path)
+
+
 def update_pec_rates(rates, repository_path=None):
     """
     PEC rate file structure

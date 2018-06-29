@@ -194,6 +194,10 @@ wavelengths[hydrogen][0] = {
     (12, 11): 69042.22,
 }
 
+# todo: temporary - add more accurate values
+wavelengths[deuterium][0] = wavelengths[hydrogen][0]
+wavelengths[tritium][0] = wavelengths[hydrogen][0]
+
 # He1+
 wavelengths[helium][1] = {
     (2, 1): 30.378,     # 2p -> 1s
