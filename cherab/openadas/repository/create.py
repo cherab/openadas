@@ -150,7 +150,7 @@ def populate(download=True, repository_path=None, adas_path=None):
             (hydrogen, neon,      10, (3, 2), "adf22/bme97#h/bme97#h_ne10.dat"),
             (hydrogen, argon,     18, (3, 2), "adf22/bme99#h/bme99#h_ar18.dat"),
         )
-    },
+    }
 
     # add common wavelengths to the repository
     wavelengths = RecursiveDict()
