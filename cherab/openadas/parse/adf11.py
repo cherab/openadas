@@ -17,7 +17,7 @@
 import numpy as np
 import re
 
-# todo: to be implemented
+# todo: to be implemented in a future release
 
 
 # def parse_adf11acd(ion, ionisation, adf_file_path):

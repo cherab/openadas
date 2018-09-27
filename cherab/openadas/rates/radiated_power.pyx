@@ -15,7 +15,7 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-# todo: to be reimplemented
+# todo: to be implemented in a future release
 
 # import numpy as np
 # from numpy cimport ndarray

@@ -20,7 +20,6 @@ import os
 Utilities for managing the local rate repository.
 """
 
-# todo: make this a configuration option in a json file, add options to setup.py to set them during install
 DEFAULT_REPOSITORY_PATH = os.path.expanduser('~/.cherab/openadas/repository')
 
 
