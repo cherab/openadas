@@ -19,9 +19,6 @@ import urllib
 from cherab.openadas import repository
 from cherab.openadas.parse import *
 
-# todo: development import, remove!
-from pprint import pprint
-
 
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
 OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
@@ -185,8 +182,7 @@ def _locate_adas_file(file_path, download=False, adas_path=None):
             if not os.path.isdir(directory):
                 os.makedirs(directory)
 
-            # TODO: move print to logging
-            # print(" - downloading ADF file '{}' to '{}'".format(file_path, target))
+            print(" - downloading ADF file '{}' to '{}'".format(file_path, target))
 
             url = urllib.parse.urljoin(OPENADAS_FILE_URL, file_path.replace('#', '][').lstrip('/'))
             urllib.request.urlretrieve(url, target)

@@ -93,10 +93,11 @@ setup(
     ext_modules=extensions
 )
 
-# setup a rate repository with some common defaults
+# setup a rate repository with common rates
 if install_rates:
     try:
-        import create_default_repository
+        from cherab.openadas import repository
+        repository.populate()
     except ImportError:
         pass
 
