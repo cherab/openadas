@@ -16,14 +16,38 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from os import path as _path
-from .openadas import OpenADAS
-from . import install
-from . import repository
+import os
 
-# parse the package version number
-with open(_path.join(_path.dirname(__file__), 'VERSION')) as _f:
-    __version__ = _f.read().strip()
+"""
+Utilities for managing the local rate repository.
+"""
+
+DEFAULT_REPOSITORY_PATH = os.path.expanduser('~/.cherab/openadas/repository')
+
+
+def encode_transition(transition):
+    """
+    Generate a key string from a transition.
+
+    Both integer and string transition descriptions are handled.
+    """
+
+    upper, lower = transition
+
+    upper = str(upper).lower()
+    lower = str(lower).lower()
+
+    return '{} -> {}'.format(upper, lower)
+
+
+def valid_ionisation(element, ionisation):
+    """
+    Returns true if the element can be ionised to the specified level.
+
+    :param ionisation: Integer ionisation level.
+    :return: True/False.
+    """
+    return ionisation <= element.atomic_number
 
 
 

@@ -1,4 +1,6 @@
-# Copyright 2014-2017 United Kingdom Atomic Energy Authority
+# Copyright 2016-2018 Euratom
+# Copyright 2016-2018 United Kingdom Atomic Energy Authority
+# Copyright 2016-2018 Centro de Investigaciones Energéticas, Medioambientales y Tecnológicas
 #
 # Licensed under the EUPL, Version 1.1 or – as soon they will be approved by the
 # European Commission - subsequent versions of the EUPL (the "Licence");
@@ -20,11 +22,13 @@ from cherab.core.math cimport Function1D, Function2D
 
 cdef class BeamCXRate(CoreBeamCXRate):
 
-
-    cdef public:
-        int donor_metastable
-        double wavelength
-
     cdef readonly:
         dict raw_data
+        double wavelength
+        int donor_metastable
         Function1D _eb, _ti, _ni, _zeff, _b
+        readonly tuple beam_energy_range
+        readonly tuple density_range
+        readonly tuple temperature_range
+        readonly tuple zeff_range
+        readonly tuple b_field_range

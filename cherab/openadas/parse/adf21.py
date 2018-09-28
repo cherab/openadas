@@ -16,14 +16,23 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from os import path as _path
-from .openadas import OpenADAS
-from . import install
-from . import repository
-
-# parse the package version number
-with open(_path.join(_path.dirname(__file__), 'VERSION')) as _f:
-    __version__ = _f.read().strip()
+from cherab.core.utility import RecursiveDict
+from .utility import parse_adas2x_rate
 
 
+def parse_adf21(beam_species, target_ion, target_ionisation, adf_file_path):
+    """
+    Opens and parses ADAS ADF21 data files.
+
+    :param beam_species: Element object describing the beam species.
+    :param target_ion: Element object describing the target ion species.
+    :param target_ionisation: Ionisation level of the target species.
+    :param adf_file_path: Path to ADF15 file from ADAS root.
+    :return: Dictionary containing rates.
+    """
+
+    rate = RecursiveDict()
+    with open(adf_file_path, 'r') as file:
+        rate[beam_species][target_ion][target_ionisation] = parse_adas2x_rate(file)
+    return rate
 

@@ -1,4 +1,6 @@
-# Copyright 2014-2017 United Kingdom Atomic Energy Authority
+# Copyright 2016-2018 Euratom
+# Copyright 2016-2018 United Kingdom Atomic Energy Authority
+# Copyright 2016-2018 Centro de Investigaciones Energéticas, Medioambientales y Tecnológicas
 #
 # Licensed under the EUPL, Version 1.1 or – as soon they will be approved by the
 # European Commission - subsequent versions of the EUPL (the "Licence");
@@ -14,8 +16,7 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-
-from .adf12 import adf12
-from .adf15 import adf15
-from .adf21 import adf21
-from .adf22 import adf22
+from .cx import *
+from .stopping import *
+from .population import *
+from .emission import *

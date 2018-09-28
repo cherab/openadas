@@ -1,4 +1,6 @@
-# Copyright 2014-2017 United Kingdom Atomic Energy Authority
+# Copyright 2016-2018 Euratom
+# Copyright 2016-2018 United Kingdom Atomic Energy Authority
+# Copyright 2016-2018 Centro de Investigaciones Energéticas, Medioambientales y Tecnológicas
 #
 # Licensed under the EUPL, Version 1.1 or – as soon they will be approved by the
 # European Commission - subsequent versions of the EUPL (the "Licence");
@@ -14,76 +16,52 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-import os
-
-from cherab.core import AtomicData, Isotope
+from cherab.core import AtomicData
 from cherab.core.atomic.elements import Isotope
-from pkg_resources import resource_filename
+from cherab.openadas.repository import DEFAULT_REPOSITORY_PATH
 
-from cherab.openadas.read import adf12, adf15, adf21, adf22
-from . import config
 from .rates import *
+from cherab.openadas import repository
 
 
 class OpenADAS(AtomicData):
+    """
 
-    def __init__(self, data_path=None, config=config.default, permit_extrapolation=False):
+    """
+
+    def __init__(self, data_path=None, permit_extrapolation=False):
 
         super().__init__()
-        self._data_path = data_path or self._setup_data_path()
-
-        # configuration is immutable, changes to ADAS state are not tracked
-        self._config = config.copy()
+        self._data_path = data_path or DEFAULT_REPOSITORY_PATH
 
         # if true informs interpolation objects to allow extrapolation beyond the limits of the tabulated data
         self._permit_extrapolation = permit_extrapolation
 
     @property
-    def config(self):
-        # configuration is immutable, changes to ADAS state are not tracked
-        return self._config.copy()
-
-    @property
     def data_path(self):
         return self._data_path
-
-    def _setup_data_path(self):
-
-        data_path = os.path.expanduser('~/.cherab/openadas')
-
-        if not os.path.isdir(data_path):
-            os.makedirs(data_path)
-            os.makedirs(os.path.join(data_path, 'adf12'))
-            os.makedirs(os.path.join(data_path, 'adf15'))
-            os.makedirs(os.path.join(data_path, 'adf21'))
-            os.makedirs(os.path.join(data_path, 'adf22'))
-
-        return data_path
 
     def wavelength(self, ion, ionisation, transition):
         """
         :param ion: Element object defining the ion type.
+        :param ionisation: Ionisation level of the ion.
         :param transition: Tuple containing (initial level, final level)
         :return: Wavelength in nanometers.
         """
 
-        try:
-            return self._config["wavelength"][ion][ionisation][transition]
-        except KeyError:
-            if isinstance(ion, Isotope):
-                element = ion.element
-                try:
-                    return self._config["wavelength"][element][ionisation][transition]
-                except KeyError:
-                    raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
-                                       "".format(ion.symbol, ionisation, transition))
-            else:
-                raise RuntimeError("The requested wavelength data for ({}, {}, {}) is not available."
-                                   "".format(ion.symbol, ionisation, transition))
+        if isinstance(ion, Isotope):
+            ion = ion.element
+        return repository.get_wavelength(ion, ionisation, transition)
 
     def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
+        """
 
-        wavelength = self.wavelength(receiver_ion, receiver_ionisation - 1, transition)
+        :param donor_ion:
+        :param receiver_ion:
+        :param receiver_ionisation:
+        :param transition:
+        :return:
+        """
 
         # extract element from isotope
         if isinstance(donor_ion, Isotope):
@@ -92,22 +70,24 @@ class OpenADAS(AtomicData):
         if isinstance(receiver_ion, Isotope):
             receiver_ion = receiver_ion.element
 
-        # locate data files
-        try:
-            data = self._config["cxs"][donor_ion][receiver_ion][receiver_ionisation]
-        except KeyError:
-            raise RuntimeError("The requested beam cx rate data does not have an entry in the Open-ADAS configuration"
-                               "(donor ion: {}, receiver ion: {}, ionisation: {}, transition: {})."
-                               "".format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
+        # read data
+        wavelength = repository.get_wavelength(receiver_ion, receiver_ionisation - 1, transition)
+        data = repository.get_beam_cx_rates(donor_ion, receiver_ion, receiver_ionisation, transition)
 
         # load and interpolate the relevant transition data from each file
         rates = []
-        for donor_metastable, filename in data:
-            file_path = os.path.join(self._data_path, filename)
-            rates.append(BeamCXRate(donor_metastable, wavelength, adf12(file_path, transition), extrapolate=self._permit_extrapolation))
+        for donor_metastable, rate_data in data:
+            rates.append(BeamCXRate(donor_metastable, wavelength, rate_data, extrapolate=self._permit_extrapolation))
         return rates
 
     def beam_stopping_rate(self, beam_ion, plasma_ion, ionisation):
+        """
+
+        :param beam_ion:
+        :param plasma_ion:
+        :param ionisation:
+        :return:
+        """
 
         # extract element from isotope
         if isinstance(beam_ion, Isotope):
@@ -117,17 +97,20 @@ class OpenADAS(AtomicData):
             plasma_ion = plasma_ion.element
 
         # locate data file
-        try:
-            filename = self._config["bms"][beam_ion][plasma_ion][ionisation]
-        except KeyError:
-            raise RuntimeError("The requested beam stopping rate data does not have an entry in the Open-ADAS "
-                               "configuration (beam ion: {}, plasma ion: {}, ionisation: {})."
-                               "".format(beam_ion.symbol, plasma_ion.symbol, ionisation))
+        data = repository.get_beam_stopping_rate(beam_ion, plasma_ion, ionisation)
 
         # load and interpolate data
-        return BeamStoppingRate(adf21(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
+        return BeamStoppingRate(data, extrapolate=self._permit_extrapolation)
 
     def beam_population_rate(self, beam_ion, metastable, plasma_ion, ionisation):
+        """
+
+        :param beam_ion:
+        :param metastable:
+        :param plasma_ion:
+        :param ionisation:
+        :return:
+        """
 
         # extract element from isotope
         if isinstance(beam_ion, Isotope):
@@ -137,21 +120,20 @@ class OpenADAS(AtomicData):
             plasma_ion = plasma_ion.element
 
         # locate data file
-        try:
-            filename = self._config["bmp"][beam_ion][metastable][plasma_ion][ionisation]
-        except KeyError:
-            raise RuntimeError("The requested beam population rate data does not have an entry in the "
-                               "Open-ADAS configuration (beam ion: {}, metastable: {}, plasma ion: {}, ionisation: {})."
-                               "".format(beam_ion.symbol, metastable, plasma_ion.symbol, ionisation))
+        data = repository.get_beam_population_rate(beam_ion, metastable, plasma_ion, ionisation)
 
         # load and interpolate data
-        return BeamPopulationRate(adf22(os.path.join(self._data_path, filename)), extrapolate=self._permit_extrapolation)
+        return BeamPopulationRate(data, extrapolate=self._permit_extrapolation)
 
     def beam_emission_rate(self, beam_ion, plasma_ion, ionisation, transition):
-        # transition: Tuple containing (initial level, final level)
-        # locate data file
+        """
 
-        wavelength = self.wavelength(beam_ion, 0, transition)
+        :param beam_ion:
+        :param plasma_ion:
+        :param ionisation:
+        :param transition:
+        :return:
+        """
 
         # extract element from isotope
         if isinstance(beam_ion, Isotope):
@@ -160,51 +142,63 @@ class OpenADAS(AtomicData):
         if isinstance(plasma_ion, Isotope):
             plasma_ion = plasma_ion.element
 
-        try:
-            filename = self._config["bme"][beam_ion][plasma_ion][ionisation][transition]
-        except KeyError:
-            raise RuntimeError("The requested beam emission rate data does not have an entry in the "
-                               "Open-ADAS configuration (beam ion: {}, plasma ion: {}, ionisation: {}, transition: {})."
-                               "".format(beam_ion.symbol, plasma_ion.symbol, ionisation, transition))
+        # locate data file
+        data = repository.get_beam_emission_rate(beam_ion, plasma_ion, ionisation, transition)
 
         # load and interpolate data
-        return BeamEmissionRate(adf22(os.path.join(self._data_path, filename)), wavelength, extrapolate=self._permit_extrapolation)
+        return BeamEmissionRate(data, extrapolate=self._permit_extrapolation)
 
     def impact_excitation_rate(self, ion, ionisation, transition):
+        """
 
-        wavelength = self.wavelength(ion, ionisation, transition)
+        :param ion:
+        :param ionisation:
+        :param transition:
+        :return:
+        """
 
-        # extract element from isotope
         if isinstance(ion, Isotope):
             ion = ion.element
 
-        try:
-            filename, block_number = self._config["excitation"][ion][ionisation][transition]
-        except KeyError:
-            raise RuntimeError("The requested impact excitation rate data does not have an entry in the "
-                               "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
-                               "".format(ion.symbol, ionisation, transition))
-
-        # load and interpolate data
-        data = adf15(os.path.join(self._data_path, filename), block_number)
+        wavelength = repository.get_wavelength(ion, ionisation, transition)
+        data = repository.get_pec_excitation_rate(ion, ionisation, transition)
         return ImpactExcitationRate(wavelength, data, extrapolate=self._permit_extrapolation)
 
     def recombination_rate(self, ion, ionisation, transition):
+        """
 
-        wavelength = self.wavelength(ion, ionisation, transition)
+        :param ion:
+        :param ionisation:
+        :param transition:
+        :return:
+        """
 
-        # extract element from isotope
         if isinstance(ion, Isotope):
             ion = ion.element
 
-        try:
-            filename, block_number = self._config["recombination"][ion][ionisation][transition]
-        except KeyError:
-            raise RuntimeError("The requested recombination rate data does not have an entry in the "
-                               "Open-ADAS configuration (ion: {}, ionisation: {}, transition: {})."
-                               "".format(ion.symbol, ionisation, transition))
-
-        # load and interpolate data
-        data = adf15(os.path.join(self._data_path, filename), block_number)
+        wavelength = repository.get_wavelength(ion, ionisation, transition)
+        data = repository.get_pec_recombination_rate(ion, ionisation, transition)
         return RecombinationRate(wavelength, data, extrapolate=self._permit_extrapolation)
+
+    # def stage_resolved_line_ radiation_rate(self, ion, ionisation):
+    #
+    #     # extract element from isotope
+    #     if isinstance(ion, Isotope):
+    #         ion = ion.element
+    #
+    #     name = 'Stage Resolved Line Radiation - ({}, {})'.format(ion.symbol, ionisation)
+    #     return StageResolvedRadiation(ion, ionisation, densities, temperatures, rate_data,
+    #                                   name=name, extrapolate=self._permit_extrapolation)
+
+    # def stage_resolved_continuum_radiation_rate(self, ion, ionisation):
+    #
+    #     # extract element from isotope
+    #     if isinstance(ion, Isotope):
+    #         ion = ion.element
+    #
+    #     name = 'Stage Resolved Continuum Radiation - ({}, {})'.format(ion.symbol, ionisation)
+    #
+    #     return StageResolvedRadiation(ion, ionisation, densities, temperatures, rate_data,
+    #                                   name=name, extrapolate=self._permit_extrapolation)
+
 

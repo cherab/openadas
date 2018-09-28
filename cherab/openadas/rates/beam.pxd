@@ -1,4 +1,6 @@
-# Copyright 2014-2017 United Kingdom Atomic Energy Authority
+# Copyright 2016-2018 Euratom
+# Copyright 2016-2018 United Kingdom Atomic Energy Authority
+# Copyright 2016-2018 Centro de Investigaciones Energéticas, Medioambientales y Tecnológicas
 #
 # Licensed under the EUPL, Version 1.1 or – as soon they will be approved by the
 # European Commission - subsequent versions of the EUPL (the "Licence");
@@ -26,6 +28,9 @@ cdef class BeamStoppingRate(CoreBeamStoppingRate):
         dict raw_data
         Function2D _npl_eb
         Function1D _tp
+        tuple beam_energy_range
+        tuple density_range
+        tuple temperature_range
 
 
 cdef class BeamPopulationRate(CoreBeamPopulationRate):
@@ -34,6 +39,9 @@ cdef class BeamPopulationRate(CoreBeamPopulationRate):
         dict raw_data
         Function2D _npl_eb
         Function1D _tp
+        tuple beam_energy_range
+        tuple density_range
+        tuple temperature_range
 
 
 cdef class BeamEmissionRate(CoreBeamEmissionRate):
@@ -42,4 +50,7 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
         dict raw_data
         Function2D _npl_eb
         Function1D _tp
+        tuple beam_energy_range
+        tuple density_range
+        tuple temperature_range
 
