@@ -16,9 +16,38 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
+import os
 
-from .adf11 import adf11
-from .adf12 import adf12
-from .adf15 import adf15
-from .adf21 import adf21
-from .adf22 import adf22
+"""
+Utilities for managing the local rate repository.
+"""
+
+DEFAULT_REPOSITORY_PATH = os.path.expanduser('~/.cherab/openadas/repository')
+
+
+def encode_transition(transition):
+    """
+    Generate a key string from a transition.
+
+    Both integer and string transition descriptions are handled.
+    """
+
+    upper, lower = transition
+
+    upper = str(upper).lower()
+    lower = str(lower).lower()
+
+    return '{} -> {}'.format(upper, lower)
+
+
+def valid_ionisation(element, ionisation):
+    """
+    Returns true if the element can be ionised to the specified level.
+
+    :param ionisation: Integer ionisation level.
+    :return: True/False.
+    """
+    return ionisation <= element.atomic_number
+
+
+

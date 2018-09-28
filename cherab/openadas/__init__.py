@@ -16,6 +16,14 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from .read import *
-from .utilities import print_available_adf15_rates
+from os import path as _path
 from .openadas import OpenADAS
+from . import install
+from . import repository
+
+# parse the package version number
+with open(_path.join(_path.dirname(__file__), 'VERSION')) as _f:
+    __version__ = _f.read().strip()
+
+
+

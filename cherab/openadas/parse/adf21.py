@@ -16,9 +16,23 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from .adf21 import adf21
+from cherab.core.utility import RecursiveDict
+from .utility import parse_adas2x_rate
 
 
-def adf22(file_path):
-    # adf22 and adf21 have the same pattern
-    return adf21(file_path)
+def parse_adf21(beam_species, target_ion, target_ionisation, adf_file_path):
+    """
+    Opens and parses ADAS ADF21 data files.
+
+    :param beam_species: Element object describing the beam species.
+    :param target_ion: Element object describing the target ion species.
+    :param target_ionisation: Ionisation level of the target species.
+    :param adf_file_path: Path to ADF15 file from ADAS root.
+    :return: Dictionary containing rates.
+    """
+
+    rate = RecursiveDict()
+    with open(adf_file_path, 'r') as file:
+        rate[beam_species][target_ion][target_ionisation] = parse_adas2x_rate(file)
+    return rate
+

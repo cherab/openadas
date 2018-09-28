@@ -1,1 +1,4 @@
 cherab
+numpy
+cython
+

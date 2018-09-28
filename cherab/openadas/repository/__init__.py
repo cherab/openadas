@@ -16,22 +16,8 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-
-from cherab.core.utility.recursivedict import RecursiveDict
-
-from .adf11 import ADF11_PLT_FILES, ADF11_PRB_FILES
-from .adf12 import ADF12_CXS_FILES
-from .adf15 import ADF15_PEC_FILES
-from .adf21 import ADF21_BMS_FILES
-from .adf22 import ADF22_BMP_FILES, ADF22_BME_FILES
-
-
-default_adas_config = RecursiveDict()
-
-default_adas_config["ADF11_PLT_FILES"] = ADF11_PLT_FILES
-default_adas_config["ADF11_PRB_FILES"] = ADF11_PRB_FILES
-default_adas_config["ADF12_CXS_FILES"] = ADF12_CXS_FILES
-default_adas_config["ADF15_PEC_FILES"] = ADF15_PEC_FILES
-default_adas_config["ADF21_BMS_FILES"] = ADF21_BMS_FILES
-default_adas_config["ADF22_BMP_FILES"] = ADF22_BMP_FILES
-default_adas_config["ADF22_BME_FILES"] = ADF22_BME_FILES
+from .beam import *
+from .pec import *
+from .wavelength import *
+from .utility import DEFAULT_REPOSITORY_PATH
+from .create import populate

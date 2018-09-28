@@ -22,11 +22,13 @@ from cherab.core.math cimport Function1D, Function2D
 
 cdef class BeamCXRate(CoreBeamCXRate):
 
-
-    cdef public:
-        int donor_metastable
-        double wavelength
-
     cdef readonly:
         dict raw_data
+        double wavelength
+        int donor_metastable
         Function1D _eb, _ti, _ni, _zeff, _b
+        readonly tuple beam_energy_range
+        readonly tuple density_range
+        readonly tuple temperature_range
+        readonly tuple zeff_range
+        readonly tuple b_field_range

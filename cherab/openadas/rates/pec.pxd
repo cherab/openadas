@@ -26,16 +26,18 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
 
     cdef:
         readonly dict raw_data
+        readonly double wavelength
         readonly tuple density_range, temperature_range
-        Interpolate2DCubic _pec
+        Interpolate2DCubic _rate
 
 
 cdef class RecombinationRate(CoreRecombinationRate):
 
     cdef:
         readonly dict raw_data
+        readonly double wavelength
         readonly tuple density_range, temperature_range
-        Interpolate2DCubic _pec
+        Interpolate2DCubic _rate
 
 
 # cdef class CXThermalRate(CoreCXThermalRate):
