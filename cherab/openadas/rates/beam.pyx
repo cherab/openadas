@@ -16,8 +16,6 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-# cython: language_level=3
-
 from cherab.core.utility.conversion import PhotonToJ
 
 cimport cython

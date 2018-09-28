@@ -16,7 +16,6 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-
 import re
 import numpy as np
 from cherab.core.atomic import hydrogen, Element
