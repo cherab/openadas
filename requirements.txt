@@ -1,4 +1,4 @@
 cherab
 numpy
-cython
+cython>0.28
 
