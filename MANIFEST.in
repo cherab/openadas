@@ -1,4 +1,5 @@
 include README.md CHANGELOG.md LICENSE.txt MANIFEST.in setup.py requirements.txt .gitignore
 include cherab/openadas/VERSION
 recursive-include cherab *.py *.pyx *.pxd *.json
+prune demos*
 
