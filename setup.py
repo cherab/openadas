@@ -9,7 +9,7 @@ import multiprocessing
 threads = multiprocessing.cpu_count()
 force = False
 profile = False
-install_rates = False
+install_rates = True
 
 if "--force" in sys.argv:
     force = True
@@ -19,9 +19,9 @@ if "--profile" in sys.argv:
     profile = True
     del sys.argv[sys.argv.index("--profile")]
 
-if "--install-rates" in sys.argv:
-    install_rates = True
-    del sys.argv[sys.argv.index("--install-rates")]
+if "--skip_rates-install" in sys.argv:
+    install_rates = False
+    del sys.argv[sys.argv.index("--skip_rates-install")]
 
 compilation_includes = [".", numpy.get_include()]
 compilation_args = []
