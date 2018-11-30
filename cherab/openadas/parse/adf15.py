@@ -187,7 +187,7 @@ def _scrape_metadata(file, element, ionisation):
 
         for i in range(len(index_lines)):
 
-            pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
+            pec_full_transition_match = '^C\s*([0-9]*)\.?\s*([0-9]*\.[0-9]*)\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
             match = re.match(pec_full_transition_match, index_lines[i], re.IGNORECASE)
             if not match:
                 continue
@@ -222,8 +222,8 @@ def _extract_rate(file, block_num):
     # search from start of file
     file.seek(0)
 
-    wavelength_match = '^\s*[0-9]*\.[0-9] ?A .*$'
-    block_id_match = '^\s*[0-9]*\.[0-9] ?A\s*([0-9]*)\s*([0-9]*).*/TYPE = ([a-zA-Z]*).*/ISEL *= * ([0-9]*)$'
+    wavelength_match = "^\s*[0-9]*\.[0-9]* +.*$"
+    block_id_match = "^\s*[0-9]*\.[0-9]* ?a?\s*([0-9]*)\s*([0-9]*).*/type *= *([a-zA-Z]*).*/isel *= * ([0-9]*)$"
 
     for block in _group_by_block(file, wavelength_match):
         match = re.match(block_id_match, block[0], re.IGNORECASE)
