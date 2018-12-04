@@ -222,7 +222,7 @@ def _extract_rate(file, block_num):
     # search from start of file
     file.seek(0)
 
-    wavelength_match = "^\s*[0-9]*\.[0-9]* +.*$"
+    wavelength_match = "^\s*[0-9]*\.[0-9]* ?a? +.*$"
     block_id_match = "^\s*[0-9]*\.[0-9]* ?a?\s*([0-9]*)\s*([0-9]*).*/type *= *([a-zA-Z]*).*/isel *= * ([0-9]*)$"
 
     for block in _group_by_block(file, wavelength_match):
