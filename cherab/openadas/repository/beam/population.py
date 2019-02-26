@@ -120,12 +120,9 @@ def get_beam_population_rate(beam_species, beam_metastable, target_ion, target_i
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
     path = os.path.join(repository_path, 'beam/population/{}/{}/{}/{}.json'.format(beam_species.symbol.lower(), beam_metastable, target_ion.symbol.lower(), target_ionisation))
-    try:
-        with open(path, 'r') as f:
-            rate = json.load(f)
-    except FileNotFoundError:
-        raise RuntimeError('Requested beam population rate (beam species={}, beam metastable={}, target ion={}, target ionisation={})'
-                           ' is not available.'.format(beam_species.symbol, beam_metastable, target_ion.symbol, target_ionisation))
+
+    with open(path, 'r') as f:
+        rate = json.load(f)
 
     # convert lists to numpy arrays
     rate['e'] = np.array(rate['e'], np.float64)
