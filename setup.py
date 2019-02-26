@@ -70,6 +70,7 @@ setup(
     install_requires=['cherab', 'numpy', 'cython>=0.28'],
     packages=find_packages(),
     include_package_data=True,
+    zip_safe= False,
     ext_modules=extensions
 )
 
