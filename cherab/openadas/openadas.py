@@ -144,9 +144,10 @@ class OpenADAS(AtomicData):
 
         # locate data file
         data = repository.get_beam_emission_rate(beam_ion, plasma_ion, ionisation, transition)
+        wavelength = repository.get_wavelength(plasma_ion, ionisation - 1, transition)
 
         # load and interpolate data
-        return BeamEmissionRate(data, extrapolate=self._permit_extrapolation)
+        return BeamEmissionRate(data, wavelength, extrapolate=self._permit_extrapolation)
 
     def impact_excitation_rate(self, ion, ionisation, transition):
         """
