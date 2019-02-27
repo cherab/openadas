@@ -31,6 +31,10 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
         Interpolate2DCubic _rate
 
 
+cdef class NullImpactExcitationRate(CoreImpactExcitationRate):
+    pass
+
+
 cdef class RecombinationRate(CoreRecombinationRate):
 
     cdef:
@@ -40,5 +44,12 @@ cdef class RecombinationRate(CoreRecombinationRate):
         Interpolate2DCubic _rate
 
 
+cdef class NullRecombinationRate(CoreRecombinationRate):
+    pass
+
+
 # cdef class CXThermalRate(CoreCXThermalRate):
+#     pass
+#
+# cdef class ThermalCXRate(CoreThermalCXRate):
 #     pass

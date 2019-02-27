@@ -170,10 +170,13 @@ def get_beam_cx_rates(donor_ion, receiver_ion, receiver_ionisation, transition, 
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
     path = os.path.join(repository_path, 'beam/cx/{}/{}/{}.json'.format(donor_ion.symbol.lower(), receiver_ion.symbol.lower(), receiver_ionisation))
-
-    with open(path, 'r') as f:
-        content = json.load(f)
-    rates = content[encode_transition(transition)]
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+        rates = content[encode_transition(transition)]
+    except (FileNotFoundError, KeyError):
+        raise RuntimeError('Requested beam CX effective emission rates (donor={}, receiver={}, ionisation={}, transition={})'
+                           ' are not available.'.format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
 
     # sanitise data and convert to (more useful) numpy arrays rather than lists
     for rate in rates.values():

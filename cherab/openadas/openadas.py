@@ -18,8 +18,6 @@
 
 from cherab.core import AtomicData
 from cherab.core.atomic.elements import Isotope
-from cherab.core.atomic.rates import NullImpactExcitationRate, NullRecombinationRate, NullThermalCXRate, \
-    NullBeamCXRate, NullBeamStoppingRate, NullBeamPopulationRate, NullBeamEmissionRate
 from cherab.openadas.repository import DEFAULT_REPOSITORY_PATH
 
 from .rates import *
@@ -31,7 +29,7 @@ class OpenADAS(AtomicData):
 
     """
 
-    def __init__(self, data_path=None, permit_extrapolation=False, allow_null_rates=False):
+    def __init__(self, data_path=None, permit_extrapolation=False, missing_rates_return_null=False):
 
         super().__init__()
         self._data_path = data_path or DEFAULT_REPOSITORY_PATH
@@ -40,7 +38,7 @@ class OpenADAS(AtomicData):
         self._permit_extrapolation = permit_extrapolation
 
         # if true, allows Null rate objects to be returned when the requested atomic data is missing
-        self._allow_null_rates = allow_null_rates
+        self._missing_rates_return_null = missing_rates_return_null
 
     @property
     def data_path(self):
@@ -80,14 +78,10 @@ class OpenADAS(AtomicData):
             wavelength = repository.get_wavelength(receiver_ion, receiver_ionisation - 1, transition)
             data = repository.get_beam_cx_rates(donor_ion, receiver_ion, receiver_ionisation, transition)
 
-        except (FileNotFoundError, KeyError):
-            if self._allow_null_rates:
+        except RuntimeError:
+            if self._missing_rates_return_null:
                 return [NullBeamCXRate()]
-            else:
-                error_msg = "Requested beam CX effective emission rates (donor={}, receiver={}, " \
-                            "ionisation={}, transition={}) are not available." \
-                            "".format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition)
-                raise RuntimeError(error_msg)
+            raise
 
         # load and interpolate the relevant transition data from each file
         rates = []
@@ -115,14 +109,10 @@ class OpenADAS(AtomicData):
             # locate data file
             data = repository.get_beam_stopping_rate(beam_ion, plasma_ion, ionisation)
 
-        except FileNotFoundError:
-            if self._allow_null_rates:
+        except RuntimeError:
+            if self._missing_rates_return_null:
                 return NullBeamStoppingRate()
-            else:
-                error_msg = "Requested beam stopping rate (beam species={}, target ion={}, " \
-                            "target ionisation={}) is not available." \
-                            "".format(beam_ion.symbol, plasma_ion.symbol, ionisation)
-                raise RuntimeError(error_msg)
+            raise
 
         # load and interpolate data
         return BeamStoppingRate(data, extrapolate=self._permit_extrapolation)
@@ -148,14 +138,10 @@ class OpenADAS(AtomicData):
             # locate data file
             data = repository.get_beam_population_rate(beam_ion, metastable, plasma_ion, ionisation)
 
-        except FileNotFoundError:
-            if self._allow_null_rates:
+        except RuntimeError:
+            if self._missing_rates_return_null:
                 return NullBeamPopulationRate()
-            else:
-                error_msg = "Requested beam population rate (beam species={}, beam metastable={}, " \
-                            "target ion={}, target ionisation={}) is not available." \
-                            "".format(beam_ion.symbol, metastable, plasma_ion.symbol, ionisation)
-                raise RuntimeError(error_msg)
+            raise
 
         # load and interpolate data
         return BeamPopulationRate(data, extrapolate=self._permit_extrapolation)
@@ -182,14 +168,10 @@ class OpenADAS(AtomicData):
             data = repository.get_beam_emission_rate(beam_ion, plasma_ion, ionisation, transition)
             wavelength = repository.get_wavelength(plasma_ion, ionisation - 1, transition)
 
-        except (FileNotFoundError, KeyError):
-            if self._allow_null_rates:
+        except RuntimeError:
+            if self._missing_rates_return_null:
                 return NullBeamEmissionRate()
-            else:
-                error_msg = "Requested beam emission rate (beam species={}, target ion={}, " \
-                            "target ionisation={}, transition={}) is not available." \
-                            "".format(beam_ion.symbol, plasma_ion.symbol, ionisation, transition)
-                raise RuntimeError(error_msg)
+            raise
 
         # load and interpolate data
         return BeamEmissionRate(data, wavelength, extrapolate=self._permit_extrapolation)
@@ -210,11 +192,10 @@ class OpenADAS(AtomicData):
             wavelength = repository.get_wavelength(ion, ionisation, transition)
             data = repository.get_pec_excitation_rate(ion, ionisation, transition)
 
-        except (FileNotFoundError, KeyError):
-            if self._allow_null_rates:
+        except RuntimeError:
+            if self._missing_rates_return_null:
                 return NullImpactExcitationRate()
-            raise RuntimeError('Requested PEC rate (class={}, element={}, ionisation={}, transition={})'
-                               ' is not available.'.format("Excitation", ion.symbol, ionisation, transition))
+            raise
 
         return ImpactExcitationRate(wavelength, data, extrapolate=self._permit_extrapolation)
 
@@ -235,10 +216,9 @@ class OpenADAS(AtomicData):
             data = repository.get_pec_recombination_rate(ion, ionisation, transition)
 
         except (FileNotFoundError, KeyError):
-            if self._allow_null_rates:
+            if self._missing_rates_return_null:
                 return NullRecombinationRate()
-            raise RuntimeError('Requested PEC rate (class={}, element={}, ionisation={}, transition={})'
-                               ' is not available.'.format("Recombination", ion.symbol, ionisation, transition))
+            raise
 
         return RecombinationRate(wavelength, data, extrapolate=self._permit_extrapolation)
 

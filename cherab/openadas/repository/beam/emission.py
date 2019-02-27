@@ -138,11 +138,14 @@ def update_beam_emission_rates(rates, repository_path=None):
 def get_beam_emission_rate(beam_species, target_ion, target_ionisation, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
-    path = os.path.join(repository_path, 'beam/emission/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
-
-    with open(path, 'r') as f:
-        content = json.load(f)
-    rate = content[encode_transition(transition)]
+    path = os.path.join(repository_path, 'beam/stopping/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+        rate = content[encode_transition(transition)]
+    except (FileNotFoundError, KeyError):
+        raise RuntimeError('Requested beam emission rate (beam species={}, target ion={}, target ionisation={}, transition={})'
+                           ' is not available.'.format(beam_species.symbol, target_ion.symbol, target_ionisation, transition))
 
     # convert lists to numpy arrays
     rate['e'] = np.array(rate['e'], np.float64)

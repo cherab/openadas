@@ -58,6 +58,16 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
         return max(0, self._rate.evaluate(density, temperature))
 
 
+cdef class NullImpactExcitationRate(CoreImpactExcitationRate):
+    """
+    A PEC rate that always returns zero.
+    Needed for use cases where the required atomic data is missing.
+    """
+
+    cpdef double evaluate(self, double density, double temperature) except? -1e999:
+        return 0.0
+
+
 cdef class RecombinationRate(CoreRecombinationRate):
 
     def __init__(self, double wavelength, dict data, extrapolate=False):
@@ -94,6 +104,17 @@ cdef class RecombinationRate(CoreRecombinationRate):
         return max(0, self._rate.evaluate(density, temperature))
 
 
+cdef class NullRecombinationRate(CoreRecombinationRate):
+    """
+    A PEC rate that always returns zero.
+    Needed for use cases where the required atomic data is missing.
+    """
+
+    cpdef double evaluate(self, double density, double temperature) except? -1e999:
+        return 0.0
+
+
+
 # cdef class ThermalCXRate(CoreThermalCXRate):
 #
 #     def __init__(self, double wavelength ,dict rate_data, extrapolate=False):
@@ -117,3 +138,13 @@ cdef class RecombinationRate(CoreRecombinationRate):
 #         plt.xlabel('Electron Temperature (eV)')
 #         plt.ylabel('$PEC$ (m$^3$ s$^{-1}$)')
 #         plt.title('Photon emissivity coefficient')
+#
+#
+# cdef class NullThermalCXRate(CoreThermalCXRate):
+#     """
+#     A PEC rate that always returns zero.
+#     Needed for use cases where the required atomic data is missing.
+#     """
+#
+#     cpdef double evaluate(self, double density, double temperature) except? -1e999:
+#         return 0.0

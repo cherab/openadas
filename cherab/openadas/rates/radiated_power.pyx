@@ -56,3 +56,12 @@
 #         cdef double rate = self._power_func.evaluate(electron_density, electron_temperature)
 #         return max(0, rate)
 #
+#
+# cdef class NullStageResolvedLineRadiation(CoreStageResolvedLineRadiation):
+#     """
+#     A stage resolved line radiation rate that always returns zero.
+#     Needed for use cases where the required atomic data is missing.
+#     """
+#
+#     cdef double evaluate(self, double electron_density, double electron_temperature) except? -1e999:
+#         return 0.0

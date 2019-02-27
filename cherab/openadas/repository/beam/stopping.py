@@ -115,9 +115,12 @@ def get_beam_stopping_rate(beam_species, target_ion, target_ionisation, reposito
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
     path = os.path.join(repository_path, 'beam/stopping/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
-
-    with open(path, 'r') as f:
-        rate = json.load(f)
+    try:
+        with open(path, 'r') as f:
+            rate = json.load(f)
+    except FileNotFoundError:
+        raise RuntimeError('Requested beam stopping rate (beam species={}, target ion={}, target ionisation={})'
+                           ' is not available.'.format(beam_species.symbol, target_ion.symbol, target_ionisation))
 
     # convert lists to numpy arrays
     rate['e'] = np.array(rate['e'], np.float64)

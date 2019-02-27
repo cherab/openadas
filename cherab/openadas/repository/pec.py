@@ -199,10 +199,13 @@ def _get_pec_rate(cls, element, ionisation, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
     path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), ionisation))
-
-    with open(path, 'r') as f:
-        content = json.load(f)
-    d = content[encode_transition(transition)]
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+        d = content[encode_transition(transition)]
+    except (FileNotFoundError, KeyError):
+        raise RuntimeError('Requested PEC rate (class={}, element={}, ionisation={}, transition={})'
+                           ' is not available.'.format(cls, element.symbol, ionisation, transition))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
