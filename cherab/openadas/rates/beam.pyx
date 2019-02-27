@@ -77,6 +77,16 @@ cdef class BeamStoppingRate(CoreBeamStoppingRate):
         return val
 
 
+cdef class NullBeamStoppingRate(CoreBeamStoppingRate):
+    """
+    A beam rate that always returns zero.
+    Needed for use cases where the required atomic data is missing.
+    """
+
+    cpdef double evaluate(self, double energy, double density, double temperature) except? -1e999:
+        return 0.0
+
+
 cdef class BeamPopulationRate(CoreBeamPopulationRate):
     """
     The beam population coefficient interpolation class.
@@ -129,6 +139,16 @@ cdef class BeamPopulationRate(CoreBeamPopulationRate):
             return 0.0
 
         return val
+
+
+cdef class NullBeamPopulationRate(CoreBeamPopulationRate):
+    """
+    A beam rate that always returns zero.
+    Needed for use cases where the required atomic data is missing.
+    """
+
+    cpdef double evaluate(self, double energy, double density, double temperature) except? -1e999:
+        return 0.0
 
 
 cdef class BeamEmissionRate(CoreBeamEmissionRate):
@@ -184,3 +204,13 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
             return 0.0
 
         return val
+
+
+cdef class NullBeamEmissionRate(CoreBeamEmissionRate):
+    """
+    A beam rate that always returns zero.
+    Needed for use cases where the required atomic data is missing.
+    """
+
+    cpdef double evaluate(self, double energy, double density, double temperature) except? -1e999:
+        return 0.0

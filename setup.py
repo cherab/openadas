@@ -19,9 +19,9 @@ if "--profile" in sys.argv:
     profile = True
     del sys.argv[sys.argv.index("--profile")]
 
-if "--skip_rates-install" in sys.argv:
+if "--skip-rates-install" in sys.argv:
     install_rates = False
-    del sys.argv[sys.argv.index("--skip_rates-install")]
+    del sys.argv[sys.argv.index("--skip-rates-install")]
 
 compilation_includes = [".", numpy.get_include()]
 compilation_args = []
@@ -70,6 +70,7 @@ setup(
     install_requires=['cherab', 'numpy', 'cython>=0.28'],
     packages=find_packages(),
     include_package_data=True,
+    zip_safe= False,
     ext_modules=extensions
 )
 
