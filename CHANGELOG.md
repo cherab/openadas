@@ -1,6 +1,17 @@
 Project Changelog
 =================
 
+Release 1.1.0 (6 Mar 2019)
+--------------------------
+
+New:
+* Added ability to return null rates if rate data is missing, rather than throw an exception.
+
+Bug fixes:
+* ADF15 parser now handles a greater variation of rate files.
+* Beam emission rate methods were reading the stopping rate files, not the emission files.
+
+
 Release 1.0.1 (1 Oct 2018)
 --------------------------
 
