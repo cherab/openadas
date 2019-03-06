@@ -1,4 +1,3 @@
-cherab
 numpy
-cython>0.28
-
+cython>=0.28
+cherab>=1.1

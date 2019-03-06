@@ -138,7 +138,7 @@ def update_beam_emission_rates(rates, repository_path=None):
 def get_beam_emission_rate(beam_species, target_ion, target_ionisation, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
-    path = os.path.join(repository_path, 'beam/stopping/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
+    path = os.path.join(repository_path, 'beam/emission/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
     try:
         with open(path, 'r') as f:
             content = json.load(f)

@@ -32,3 +32,7 @@ cdef class BeamCXRate(CoreBeamCXRate):
         readonly tuple temperature_range
         readonly tuple zeff_range
         readonly tuple b_field_range
+
+
+cdef class NullBeamCXRate(CoreBeamCXRate):
+    pass

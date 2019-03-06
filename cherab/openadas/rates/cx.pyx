@@ -105,3 +105,12 @@ cdef class BeamCXRate(CoreBeamCXRate):
 
         return rate
 
+
+cdef class NullBeamCXRate(CoreBeamCXRate):
+    """
+    A beam CX rate that always returns zero.
+    Needed for use cases where the required atomic data is missing.
+    """
+
+    cpdef double evaluate(self, double energy, double temperature, double density, double z_effective, double b_field) except? -1e999:
+        return 0.0

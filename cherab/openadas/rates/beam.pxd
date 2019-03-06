@@ -33,6 +33,10 @@ cdef class BeamStoppingRate(CoreBeamStoppingRate):
         tuple temperature_range
 
 
+cdef class NullBeamStoppingRate(CoreBeamStoppingRate):
+    pass
+
+
 cdef class BeamPopulationRate(CoreBeamPopulationRate):
 
     cdef readonly:
@@ -42,6 +46,10 @@ cdef class BeamPopulationRate(CoreBeamPopulationRate):
         tuple beam_energy_range
         tuple density_range
         tuple temperature_range
+
+
+cdef class NullBeamPopulationRate(CoreBeamPopulationRate):
+    pass
 
 
 cdef class BeamEmissionRate(CoreBeamEmissionRate):
@@ -54,3 +62,6 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
         tuple density_range
         tuple temperature_range
 
+
+cdef class NullBeamEmissionRate(CoreBeamEmissionRate):
+    pass
