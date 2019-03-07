@@ -28,6 +28,12 @@ OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
 def install_files(configuration, download=False, repository_path=None, adas_path=None):
 
     for adf in configuration:
+        if adf.lower() == 'adf11scd':
+            for args in configuration[adf]:
+                install_adf11scd(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf11acd':
+            for args in configuration[adf]:
+                install_adf11acd(*args, download=download, repository_path=repository_path, adas_path=adas_path)
         if adf.lower() == 'adf12':
             for args in configuration[adf]:
                 install_adf12(*args, download=download, repository_path=repository_path, adas_path=adas_path)
@@ -43,6 +49,48 @@ def install_files(configuration, download=False, repository_path=None, adas_path
         if adf.lower() == 'adf22bme':
             for args in configuration[adf]:
                 install_adf22bme(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+
+
+def install_adf11scd(element, file_path, download=False, repository_path=None, adas_path=None):
+    """
+    Adds the ionisation rate defined in an ADF11 file to the repository.
+
+    :param element: The element described by the rate file.
+    :param file_path: Path relative to ADAS root.
+    :param download: Attempt to download file if not present (Default=True).
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
+    """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # decode file and write out rates
+    rate = parse_adf11(element, path)
+    repository.update_ionisation_rates(rate, repository_path)
+
+
+def install_adf11acd(element, file_path, download=False, repository_path=None, adas_path=None):
+    """
+    Adds the recombination rate defined in an ADF11 file to the repository.
+
+    :param element: The element described by the rate file.
+    :param file_path: Path relative to ADAS root.
+    :param download: Attempt to download file if not present (Default=True).
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
+    """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # decode file and write out rates
+    rate = parse_adf11(element, path)
+    repository.update_recombination_rates(rate, repository_path)
 
 
 # todo: move print calls to logging

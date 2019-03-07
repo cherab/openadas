@@ -56,7 +56,37 @@ class OpenADAS(AtomicData):
             ion = ion.element
         return repository.get_wavelength(ion, ionisation, transition)
 
-    def beam_cx_rate(self, donor_ion, receiver_ion, receiver_ionisation, transition):
+    def ionisation_rate(self, ion, ionisation):
+
+        if isinstance(ion, Isotope):
+            ion = ion.element
+
+        try:
+            data = repository.get_ionisation_rate(ion, ionisation)
+
+        except RuntimeError:
+            if self._missing_rates_return_null:
+                return NullIonisationRate()
+            raise
+
+        return IonisationRate(data, extrapolate=self._permit_extrapolation)
+
+    def recombination_rate(self, ion, ionisation):
+
+        if isinstance(ion, Isotope):
+            ion = ion.element
+
+        try:
+            data = repository.get_recombination_rate(ion, ionisation)
+
+        except RuntimeError:
+            if self._missing_rates_return_null:
+                return NullRecombinationRate()
+            raise
+
+        return RecombinationRate(data, extrapolate=self._permit_extrapolation)
+
+    def beam_cx_pec(self, donor_ion, receiver_ion, receiver_ionisation, transition):
         """
 
         :param donor_ion:
@@ -80,13 +110,13 @@ class OpenADAS(AtomicData):
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return [NullBeamCXRate()]
+                return [NullBeamCXPEC()]
             raise
 
         # load and interpolate the relevant transition data from each file
         rates = []
         for donor_metastable, rate_data in data:
-            rates.append(BeamCXRate(donor_metastable, wavelength, rate_data, extrapolate=self._permit_extrapolation))
+            rates.append(BeamCXPEC(donor_metastable, wavelength, rate_data, extrapolate=self._permit_extrapolation))
         return rates
 
     def beam_stopping_rate(self, beam_ion, plasma_ion, ionisation):
@@ -146,7 +176,7 @@ class OpenADAS(AtomicData):
         # load and interpolate data
         return BeamPopulationRate(data, extrapolate=self._permit_extrapolation)
 
-    def beam_emission_rate(self, beam_ion, plasma_ion, ionisation, transition):
+    def beam_emission_pec(self, beam_ion, plasma_ion, ionisation, transition):
         """
 
         :param beam_ion:
@@ -170,13 +200,13 @@ class OpenADAS(AtomicData):
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullBeamEmissionRate()
+                return NullBeamEmissionPEC()
             raise
 
         # load and interpolate data
-        return BeamEmissionRate(data, wavelength, extrapolate=self._permit_extrapolation)
+        return BeamEmissionPEC(data, wavelength, extrapolate=self._permit_extrapolation)
 
-    def impact_excitation_rate(self, ion, ionisation, transition):
+    def impact_excitation_pec(self, ion, ionisation, transition):
         """
 
         :param ion:
@@ -194,12 +224,12 @@ class OpenADAS(AtomicData):
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullImpactExcitationRate()
+                return NullImpactExcitationPEC()
             raise
 
-        return ImpactExcitationRate(wavelength, data, extrapolate=self._permit_extrapolation)
+        return ImpactExcitationPEC(wavelength, data, extrapolate=self._permit_extrapolation)
 
-    def recombination_rate(self, ion, ionisation, transition):
+    def recombination_pec(self, ion, ionisation, transition):
         """
 
         :param ion:
@@ -217,10 +247,10 @@ class OpenADAS(AtomicData):
 
         except (FileNotFoundError, KeyError):
             if self._missing_rates_return_null:
-                return NullRecombinationRate()
+                return NullRecombinationPEC()
             raise
 
-        return RecombinationRate(wavelength, data, extrapolate=self._permit_extrapolation)
+        return RecombinationPEC(wavelength, data, extrapolate=self._permit_extrapolation)
 
     # def stage_resolved_line_ radiation_rate(self, ion, ionisation):
     #

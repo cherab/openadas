@@ -16,13 +16,13 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from cherab.core cimport ImpactExcitationRate as CoreImpactExcitationRate
-from cherab.core cimport RecombinationRate as CoreRecombinationRate
-from cherab.core cimport ThermalCXRate as CoreThermalCXRate
+from cherab.core cimport ImpactExcitationPEC as CoreImpactExcitationPEC
+from cherab.core cimport RecombinationPEC as CoreRecombinationPEC
+from cherab.core cimport ThermalCXPEC as CoreThermalCXPEC
 from cherab.core.math cimport Interpolate2DCubic
 
 
-cdef class ImpactExcitationRate(CoreImpactExcitationRate):
+cdef class ImpactExcitationPEC(CoreImpactExcitationPEC):
 
     cdef:
         readonly dict raw_data
@@ -31,11 +31,11 @@ cdef class ImpactExcitationRate(CoreImpactExcitationRate):
         Interpolate2DCubic _rate
 
 
-cdef class NullImpactExcitationRate(CoreImpactExcitationRate):
+cdef class NullImpactExcitationPEC(CoreImpactExcitationPEC):
     pass
 
 
-cdef class RecombinationRate(CoreRecombinationRate):
+cdef class RecombinationPEC(CoreRecombinationPEC):
 
     cdef:
         readonly dict raw_data
@@ -44,7 +44,7 @@ cdef class RecombinationRate(CoreRecombinationRate):
         Interpolate2DCubic _rate
 
 
-cdef class NullRecombinationRate(CoreRecombinationRate):
+cdef class NullRecombinationPEC(CoreRecombinationPEC):
     pass
 
 

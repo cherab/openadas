@@ -22,7 +22,7 @@ cimport cython
 from cherab.core.math cimport Interpolate1DCubic
 
 
-cdef class BeamCXRate(CoreBeamCXRate):
+cdef class BeamCXPEC(CoreBeamCXPEC):
     """
     The effective cx rate interpolation class.
 
@@ -106,7 +106,7 @@ cdef class BeamCXRate(CoreBeamCXRate):
         return rate
 
 
-cdef class NullBeamCXRate(CoreBeamCXRate):
+cdef class NullBeamCXPEC(CoreBeamCXPEC):
     """
     A beam CX rate that always returns zero.
     Needed for use cases where the required atomic data is missing.

@@ -16,7 +16,32 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from .beam import *
-from .cx import *
-from .pec import *
-from .atomic import *
+from cherab.core cimport IonisationRate as CoreIonisationRate
+from cherab.core cimport RecombinationRate as CoreRecombinationRate
+from cherab.core.math cimport Interpolate2DCubic
+
+
+cdef class IonisationRate(CoreIonisationRate):
+
+    cdef:
+        readonly dict raw_data
+        readonly double wavelength
+        readonly tuple density_range, temperature_range
+        Interpolate2DCubic _rate
+
+
+cdef class NullImpactExcitationRate(CoreIonisationRate):
+    pass
+
+
+cdef class RecombinationRate(CoreRecombinationRate):
+
+    cdef:
+        readonly dict raw_data
+        readonly double wavelength
+        readonly tuple density_range, temperature_range
+        Interpolate2DCubic _rate
+
+
+cdef class NullRecombinationRate(CoreRecombinationRate):
+    pass

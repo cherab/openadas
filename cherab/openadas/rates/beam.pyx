@@ -151,7 +151,7 @@ cdef class NullBeamPopulationRate(CoreBeamPopulationRate):
         return 0.0
 
 
-cdef class BeamEmissionRate(CoreBeamEmissionRate):
+cdef class BeamEmissionPEC(CoreBeamEmissionPEC):
     """
     The beam emission coefficient interpolation class.
 
@@ -206,7 +206,7 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
         return val
 
 
-cdef class NullBeamEmissionRate(CoreBeamEmissionRate):
+cdef class NullBeamEmissionPEC(CoreBeamEmissionPEC):
     """
     A beam rate that always returns zero.
     Needed for use cases where the required atomic data is missing.

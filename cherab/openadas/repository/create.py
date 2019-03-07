@@ -37,6 +37,14 @@ def populate(download=True, repository_path=None, adas_path=None):
 
     # install a common selection of open adas files
     rates = {
+        'adf11scd': (
+            (hydrogen, 'adf11/scd12/scd12_h.dat'),
+            (carbon, 'adf11/scd96/scd96_c.dat'),
+        ),
+        'adf11acd': (
+            (hydrogen, 'adf11/acd12/acd12_h.dat'),
+            (carbon, 'adf11/acd96/acd96_c.dat')
+        ),
         # 'adf11plt': (
         #     (hydrogen, "adf11/plt12/plt12_h.dat"),
         #     (helium, "adf11/plt96/plt96_he.dat"),

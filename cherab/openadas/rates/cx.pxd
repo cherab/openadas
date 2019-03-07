@@ -16,11 +16,11 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
-from cherab.core cimport BeamCXRate as CoreBeamCXRate
+from cherab.core cimport BeamCXPEC as CoreBeamCXPEC
 from cherab.core.math cimport Function1D, Function2D
 
 
-cdef class BeamCXRate(CoreBeamCXRate):
+cdef class BeamCXPEC(CoreBeamCXPEC):
 
     cdef readonly:
         dict raw_data
@@ -34,5 +34,5 @@ cdef class BeamCXRate(CoreBeamCXRate):
         readonly tuple b_field_range
 
 
-cdef class NullBeamCXRate(CoreBeamCXRate):
+cdef class NullBeamCXPEC(CoreBeamCXPEC):
     pass
