@@ -137,12 +137,6 @@ def parse_adf11(element, adf_file_path):
                     rates[element][ion_charge]['te'] = temperatures
                     rates[element][ion_charge]['rates'] = np.swapaxes(rates_table, 0, 1)
 
-                    print()
-                    print("density", densities.shape)
-                    print("temperatures", temperatures.shape)
-                    print("rates", rates_table.shape)
-                    print()
-
                     # if end of data block beak the loop or reassign start of data block for next stage
                     if re.match("^\s*C{1}-{2,}", lines[i]) or re.match("^\s*C{0,1}-{2,}", lines[i]) and \
                             re.match("^\s*C\n", lines[i + 1]):

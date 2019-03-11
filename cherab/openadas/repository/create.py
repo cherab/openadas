@@ -39,11 +39,31 @@ def populate(download=True, repository_path=None, adas_path=None):
     rates = {
         'adf11scd': (
             (hydrogen, 'adf11/scd12/scd12_h.dat'),
+            (helium, 'adf11/scd96/scd96_he.dat'),
+            (lithium, 'adf11/scd96/scd96_li.dat'),
+            (beryllium, 'adf11/scd96/scd96_be.dat'),
+            (boron, 'adf11/scd89/scd89_b.dat'),
             (carbon, 'adf11/scd96/scd96_c.dat'),
+            (nitrogen, 'adf11/scd96/scd96_n.dat'),
+            (oxygen, 'adf11/scd96/scd96_o.dat'),
+            (neon, 'adf11/scd96/scd96_ne.dat'),
+            (argon, 'adf11/scd89/scd89_ar.dat'),
+            (krypton, 'adf11/scd89/scd89_kr.dat'),
+            (xenon, 'adf11/scd89/scd89_xe.dat'),
         ),
         'adf11acd': (
             (hydrogen, 'adf11/acd12/acd12_h.dat'),
-            (carbon, 'adf11/acd96/acd96_c.dat')
+            (helium, 'adf11/acd96/acd96_he.dat'),
+            (lithium, 'adf11/acd96/acd96_li.dat'),
+            (beryllium, 'adf11/acd96/acd96_be.dat'),
+            (boron, 'adf11/acd89/acd89_b.dat'),
+            (carbon, 'adf11/acd96/acd96_c.dat'),
+            (nitrogen, 'adf11/acd96/acd96_n.dat'),
+            (oxygen, 'adf11/acd96/acd96_o.dat'),
+            (neon, 'adf11/acd96/acd96_ne.dat'),
+            (argon, 'adf11/acd89/acd89_ar.dat'),
+            (krypton, 'adf11/acd89/acd89_kr.dat'),
+            (xenon, 'adf11/acd89/acd89_xe.dat'),
         ),
         # 'adf11plt': (
         #     (hydrogen, "adf11/plt12/plt12_h.dat"),
