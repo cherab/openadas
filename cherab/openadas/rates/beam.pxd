@@ -18,7 +18,7 @@
 
 from cherab.core cimport BeamStoppingRate as CoreBeamStoppingRate
 from cherab.core cimport BeamPopulationRate as CoreBeamPopulationRate
-from cherab.core cimport BeamEmissionRate as CoreBeamEmissionRate
+from cherab.core cimport BeamEmissionPEC as CoreBeamEmissionPEC
 from cherab.core.math cimport Function1D, Function2D
 
 
@@ -52,7 +52,7 @@ cdef class NullBeamPopulationRate(CoreBeamPopulationRate):
     pass
 
 
-cdef class BeamEmissionRate(CoreBeamEmissionRate):
+cdef class BeamEmissionPEC(CoreBeamEmissionPEC):
 
     cdef readonly:
         dict raw_data
@@ -63,5 +63,5 @@ cdef class BeamEmissionRate(CoreBeamEmissionRate):
         tuple temperature_range
 
 
-cdef class NullBeamEmissionRate(CoreBeamEmissionRate):
+cdef class NullBeamEmissionPEC(CoreBeamEmissionPEC):
     pass
