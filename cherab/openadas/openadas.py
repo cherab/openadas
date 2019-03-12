@@ -252,25 +252,49 @@ class OpenADAS(AtomicData):
 
         return RecombinationPEC(wavelength, data, extrapolate=self._permit_extrapolation)
 
-    # def stage_resolved_line_ radiation_rate(self, ion, ionisation):
-    #
-    #     # extract element from isotope
-    #     if isinstance(ion, Isotope):
-    #         ion = ion.element
-    #
-    #     name = 'Stage Resolved Line Radiation - ({}, {})'.format(ion.symbol, ionisation)
-    #     return StageResolvedRadiation(ion, ionisation, densities, temperatures, rate_data,
-    #                                   name=name, extrapolate=self._permit_extrapolation)
+    def line_radiated_power_rate(self, ion, ionisation):
 
-    # def stage_resolved_continuum_radiation_rate(self, ion, ionisation):
-    #
-    #     # extract element from isotope
-    #     if isinstance(ion, Isotope):
-    #         ion = ion.element
-    #
-    #     name = 'Stage Resolved Continuum Radiation - ({}, {})'.format(ion.symbol, ionisation)
-    #
-    #     return StageResolvedRadiation(ion, ionisation, densities, temperatures, rate_data,
-    #                                   name=name, extrapolate=self._permit_extrapolation)
+        if isinstance(ion, Isotope):
+            ion = ion.element
+
+        try:
+            data = repository.get_line_radiated_power_rate(ion, ionisation)
+
+        except RuntimeError:
+            if self._missing_rates_return_null:
+                return NullIonisationRate()
+            raise
+
+        return LineRadiationPower(ion, ionisation, data, extrapolate=self._permit_extrapolation)
+
+    def continuum_radiated_power_rate(self, ion, ionisation):
+
+        if isinstance(ion, Isotope):
+            ion = ion.element
+
+        try:
+            data = repository.get_continuum_radiated_power_rate(ion, ionisation)
+
+        except RuntimeError:
+            if self._missing_rates_return_null:
+                return NullIonisationRate()
+            raise
+
+        return ContinuumPower(ion, ionisation, data, extrapolate=self._permit_extrapolation)
+
+    def cx_radiated_power_rate(self, ion, ionisation):
+
+        if isinstance(ion, Isotope):
+            ion = ion.element
+
+        try:
+            data = repository.get_cx_radiated_power_rate(ion, ionisation)
+
+        except RuntimeError:
+            if self._missing_rates_return_null:
+                return NullIonisationRate()
+            raise
+
+        return CXRadiationPower(ion, ionisation, data, extrapolate=self._permit_extrapolation)
 
 

@@ -23,42 +23,6 @@ from cherab.core.atomic import Element
 from cherab.core.utility import RecursiveDict, Cm3ToM3, PerCm3ToPerM3
 
 
-# def parse_adf11acd(ion, ionisation, adf_file_path):
-#     pass
-
-
-# def parse_adf11scd(ion, ionisation, adf_file_path):
-#     pass
-
-
-# def parse_adf11qcd(ion, ionisation, adf_file_path):
-#     pass
-
-
-# def parse_adf11xcd(ion, ionisation, adf_file_path):
-#     pass
-
-
-# def parse_adf11ccd(ion, ionisation, adf_file_path):
-#     pass
-
-
-# def parse_adf11plt(ion, ionisation, adf_file_path):
-#     pass
-
-
-# def parse_adf11prb(ion, ionisation, adf_file_path):
-#     pass
-
-
-# def parse_adf11pls(ion, ionisation, adf_file_path):
-#     pass
-
-
-# def parse_adf11prc(ion, ionisation, adf_file_path):
-#     pass
-
-
 def parse_adf11(element, adf_file_path):
     """
     Reads contents of open adas adf11 files
@@ -129,19 +93,13 @@ def parse_adf11(element, adf_file_path):
                                                 dtype=float).reshape((n_temperatures,
                                                                       n_densities))  # transform into an array
 
-                    # convert units from cm^-3 to m^-3
+                    # convert units from cm^3 to m^3
                     rates_table = 10**rates_table
                     rates_table = Cm3ToM3.to(rates_table)
 
                     rates[element][ion_charge]['ne'] = densities
                     rates[element][ion_charge]['te'] = temperatures
                     rates[element][ion_charge]['rates'] = np.swapaxes(rates_table, 0, 1)
-
-                    print()
-                    print("density", densities.shape)
-                    print("temperatures", temperatures.shape)
-                    print("rates", rates_table.shape)
-                    print()
 
                     # if end of data block beak the loop or reassign start of data block for next stage
                     if re.match("^\s*C{1}-{2,}", lines[i]) or re.match("^\s*C{0,1}-{2,}", lines[i]) and \
@@ -161,62 +119,3 @@ def parse_adf11(element, adf_file_path):
                 blockrates_start = i + 1  # if block start not known, check if we are at the right position
 
         return rates
-
-
-# def parse_adf11xxx(file_path, ion, ionisation):
-#
-#     adf11_fh = open(file_path, 'r')
-#     lines = adf11_fh.readlines()
-#     adf11_fh.close()
-#
-#     file_header = lines.pop(0).split()
-#     if int(file_header[0]) != ion.atomic_number:
-#         raise ValueError("ADF file does not match required atomic number.")
-#
-#     num_densities = int(file_header[1])
-#     num_temperatures = int(file_header[2])
-#
-#     lines.pop(0)
-#     parameter_lines = []
-#     while True:
-#         next_line = lines.pop(0)
-#         if next_line[0:2] == '--':
-#             break
-#         components = next_line.split()
-#         for c in components:
-#             parameter_lines.append(float(c))
-#
-#     if len(parameter_lines) != num_densities + num_temperatures:
-#         raise ValueError("ADF11 file could not be parsed correctly.")
-
-#     # todo: remove log10 remapping, interpolate directly! Note also needs to be fixed in rate.
-#     densities = np.array([10**x * 1E4 for x in parameter_lines[0:num_densities]])
-#     temperatures = np.array([10**x for x in parameter_lines[num_densities:]])
-#
-#     found = False
-#     while True:
-#         if next_line[0:2] == '--':
-#             match = re.match('.*Z1= ([0-9]*).*', next_line)
-#             if match and int(match.group(1)) == ionisation+1:
-#                 found = True
-#                 break
-#         if next_line[0] == 'C':
-#             break
-#         next_line = lines.pop(0)
-#
-#     if found:
-#         rate_data = []
-#         while True:
-#             next_line = lines.pop(0)
-#             if next_line[0:2] == '--' or next_line[0] == 'C':
-#                 break
-#             for c in next_line.split():
-#                 rate_data.append(10**float(c) * 1E-8)
-#
-#         rate_data = np.array(rate_data)
-#         rate_data = rate_data.reshape((num_densities, num_temperatures))
-#
-#     else:
-#         raise ValueError('Requested ADF11 data could not be found in this file.')
-#
-#     return densities, temperatures, rate_data
