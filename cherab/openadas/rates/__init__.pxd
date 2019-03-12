@@ -20,3 +20,4 @@ from cherab.openadas.rates.beam cimport *
 from cherab.openadas.rates.cx cimport *
 from cherab.openadas.rates.pec cimport *
 from cherab.openadas.rates.atomic cimport *
+from cherab.openadas.rates.radiated_power cimport *

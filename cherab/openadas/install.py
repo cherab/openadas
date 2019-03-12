@@ -34,6 +34,15 @@ def install_files(configuration, download=False, repository_path=None, adas_path
         if adf.lower() == 'adf11acd':
             for args in configuration[adf]:
                 install_adf11acd(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf11plt':
+            for args in configuration[adf]:
+                install_adf11plt(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf11prb':
+            for args in configuration[adf]:
+                install_adf11prb(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf11prc':
+            for args in configuration[adf]:
+                install_adf11prc(*args, download=download, repository_path=repository_path, adas_path=adas_path)
         if adf.lower() == 'adf12':
             for args in configuration[adf]:
                 install_adf12(*args, download=download, repository_path=repository_path, adas_path=adas_path)
@@ -50,6 +59,8 @@ def install_files(configuration, download=False, repository_path=None, adas_path
             for args in configuration[adf]:
                 install_adf22bme(*args, download=download, repository_path=repository_path, adas_path=adas_path)
 
+
+# todo: move print calls to logging
 
 def install_adf11scd(element, file_path, download=False, repository_path=None, adas_path=None):
     """
@@ -93,7 +104,69 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
     repository.update_recombination_rates(rate, repository_path)
 
 
-# todo: move print calls to logging
+def install_adf11plt(element, file_path, download=False, repository_path=None, adas_path=None):
+    """
+    Adds the line radiated power rates defined in an ADF11 file to the repository.
+
+    :param element: The element described by the rate file.
+    :param file_path: Path relative to ADAS root.
+    :param download: Attempt to download file if not present (Default=True).
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
+    """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # decode file and write out rates
+    rate = parse_adf11(element, path)
+    repository.update_line_power_rates(rate, repository_path)
+
+
+def install_adf11prb(element, file_path, download=False, repository_path=None, adas_path=None):
+    """
+    Adds the continuum radiated power rates defined in an ADF11 file to the repository.
+
+    :param element: The element described by the rate file.
+    :param file_path: Path relative to ADAS root.
+    :param download: Attempt to download file if not present (Default=True).
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
+    """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # decode file and write out rates
+    rate = parse_adf11(element, path)
+    repository.update_continuum_power_rates(rate, repository_path)
+
+
+def install_adf11prc(element, file_path, download=False, repository_path=None, adas_path=None):
+    """
+    Adds the CX radiated power rates defined in an ADF11 file to the repository.
+
+    :param element: The element described by the rate file.
+    :param file_path: Path relative to ADAS root.
+    :param download: Attempt to download file if not present (Default=True).
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
+    """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # decode file and write out rates
+    rate = parse_adf11(element, path)
+    repository.update_cx_power_rates(rate, repository_path)
+
+
 def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, file_path, download=False, repository_path=None, adas_path=None):
     """
     Adds the rates in the ADF12 file to the repository.
@@ -118,7 +191,6 @@ def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation
     repository.update_beam_cx_rates(rates, repository_path)
 
 
-# todo: move print calls to logging
 def install_adf15(element, ionisation, file_path, download=False, repository_path=None, adas_path=None):
     """
     Adds the rates in the ADF15 file to the repository.
@@ -142,7 +214,6 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
     repository.update_wavelengths(wavelengths, repository_path)
 
 
-# todo: move print calls to logging
 def install_adf21(beam_species, target_ion, target_ionisation, file_path, download=False, repository_path=None, adas_path=None):
     # """
     # Adds the rate defined in an ADF21 file to the repository.
@@ -163,7 +234,6 @@ def install_adf21(beam_species, target_ion, target_ionisation, file_path, downlo
     repository.update_beam_stopping_rates(rate, repository_path)
 
 
-# todo: move print calls to logging
 def install_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, file_path, download=False, repository_path=None, adas_path=None):
     pass
     # """
@@ -185,7 +255,6 @@ def install_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisatio
     repository.update_beam_population_rates(rate, repository_path)
 
 
-# todo: move print calls to logging
 def install_adf22bme(beam_species, target_ion, target_ionisation, transition, file_path, download=False, repository_path=None, adas_path=None):
     pass
     # """
