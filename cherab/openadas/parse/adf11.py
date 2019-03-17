@@ -22,31 +22,6 @@ import numpy as np
 from cherab.core.atomic import Element
 from cherab.core.utility import RecursiveDict, Cm3ToM3, PerCm3ToPerM3
 
-def rates_adf11(element, adf_file_path):
-    """
-    Reads contents of open adas adf11 files and maps OpenADAS charge notation onto cherab charge notation.
-
-    :param element: Element described by ADF file.
-    :param adf_file_path: Path to ADF11 file from ADAS root.
-    :return: temperature, density, rates as numpy array
-    """
-
-
-    rates = parse_adf11(element, adf_file_path)
-
-
-    if re.search("(scd)|(ccd)|(plt)|(pls)", adf_file_path):
-
-        rates_cherab = RecursiveDict()
-        for i in rates.keys():
-            for j in rates[i].keys():
-                rates_cherab[i][j-1] = rates[i][j]
-    elif re.search("(acd)|(prb)|(prc)", adf_file_path):
-        rates_cherab = rates
-    else:
-        raise TypeError("Unknown file type. adf_file_path '{0}' has to contain of the substrings:acd, prb, prc, scd, ccd, plt, pls.".format(adf_file_path))
-
-    return rates_cherab
 
 def parse_adf11(element, adf_file_path):
     """

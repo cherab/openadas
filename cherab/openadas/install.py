@@ -19,7 +19,7 @@ import os
 import urllib
 from cherab.openadas import repository
 from cherab.openadas.parse import *
-
+from cherab.core.utility import RecursiveDict
 
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
 OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
@@ -79,7 +79,14 @@ def install_adf11scd(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = rates_adf11(element, path)
+    rate = parse_adf11(element, path)
+
+    #map from ADAS to Cherab charge notation
+    rate_cherab = RecursiveDict()
+    for i in rate.keys():
+        for j in rate[i].keys():
+            rate_cherab[i][j-1] = rate[i][j]
+
     repository.update_ionisation_rates(rate, repository_path)
 
 
@@ -100,7 +107,7 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = rates_adf11(element, path)
+    rate = parse_adf11(element, path)
     repository.update_recombination_rates(rate, repository_path)
 
 
@@ -121,7 +128,14 @@ def install_adf11plt(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = rates_adf11(element, path)
+    rate = parse_adf11(element, path)
+
+    #map from ADAS to Cherab charge notation
+    rate_cherab = RecursiveDict()
+    for i in rate.keys():
+        for j in rate[i].keys():
+            rate_cherab[i][j-1] = rate[i][j]
+
     repository.update_line_power_rates(rate, repository_path)
 
 
@@ -142,7 +156,7 @@ def install_adf11prb(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = rates_adf11(element, path)
+    rate = parse_adf11(element, path)
     repository.update_continuum_power_rates(rate, repository_path)
 
 
@@ -163,7 +177,7 @@ def install_adf11prc(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = rates_adf11(element, path)
+    rate = parse_adf11(element, path)
     repository.update_cx_power_rates(rate, repository_path)
 
 
