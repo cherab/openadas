@@ -87,7 +87,7 @@ def install_adf11scd(element, file_path, download=False, repository_path=None, a
         for j in rate[i].keys():
             rate_cherab[i][j-1] = rate[i][j]
 
-    repository.update_ionisation_rates(rate, repository_path)
+    repository.update_ionisation_rates(rate_cherab, repository_path)
 
 
 def install_adf11acd(element, file_path, download=False, repository_path=None, adas_path=None):
@@ -108,6 +108,9 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
 
     # decode file and write out rates
     rate = parse_adf11(element, path)
+
+    #cherab charge notation agrees with adas
+
     repository.update_recombination_rates(rate, repository_path)
 
 
@@ -136,7 +139,7 @@ def install_adf11plt(element, file_path, download=False, repository_path=None, a
         for j in rate[i].keys():
             rate_cherab[i][j-1] = rate[i][j]
 
-    repository.update_line_power_rates(rate, repository_path)
+    repository.update_line_power_rates(rate_cherab, repository_path)
 
 
 def install_adf11prb(element, file_path, download=False, repository_path=None, adas_path=None):
@@ -157,6 +160,9 @@ def install_adf11prb(element, file_path, download=False, repository_path=None, a
 
     # decode file and write out rates
     rate = parse_adf11(element, path)
+
+    #cherab charge notation agrees with adas
+
     repository.update_continuum_power_rates(rate, repository_path)
 
 
@@ -178,6 +184,9 @@ def install_adf11prc(element, file_path, download=False, repository_path=None, a
 
     # decode file and write out rates
     rate = parse_adf11(element, path)
+
+    #cherab charge notation agrees with adas
+
     repository.update_cx_power_rates(rate, repository_path)
 
 
