@@ -21,14 +21,14 @@ import json
 import numpy as np
 from cherab.core.utility import RecursiveDict
 from cherab.core.atomic import Element
-from ..utility import DEFAULT_REPOSITORY_PATH, valid_ionisation, encode_transition
+from ..utility import DEFAULT_REPOSITORY_PATH, valid_charge, encode_transition
 
 """
 Utilities for managing the local rate repository - PEC section.
 """
 
 
-def add_beam_emission_rate(beam_species, target_ion, target_ionisation, transition, rate, repository_path=None):
+def add_beam_emission_rate(beam_species, target_ion, target_charge, transition, rate, repository_path=None):
     """
     Adds a single beam emission rate to the repository.
 
@@ -43,7 +43,7 @@ def add_beam_emission_rate(beam_species, target_ion, target_ionisation, transiti
     update_beam_emission_rates({
         beam_species: {
             target_ion: {
-                target_ionisation: {
+                target_charge: {
                     transition: rate
                 }
             }
@@ -55,7 +55,7 @@ def update_beam_emission_rates(rates, repository_path=None):
     """
     Beam emission rate file structure
 
-    /beam/emission/<beam species>/<target ion>/<target_ionisation>.json
+    /beam/emission/<beam species>/<target ion>/<target_charge>.json
 
     File contains multiple rates, indexed by transition.
     """
@@ -63,8 +63,8 @@ def update_beam_emission_rates(rates, repository_path=None):
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
     for beam_species, target_ions in rates.items():
-        for target_ion, target_ionisations in target_ions.items():
-            for target_ionisation, transitions in target_ionisations.items():
+        for target_ion, target_charge_states in target_ions.items():
+            for target_charge, transitions in target_charge_states.items():
 
                 # sanitise and validate arguments
                 if not isinstance(beam_species, Element):
@@ -73,10 +73,10 @@ def update_beam_emission_rates(rates, repository_path=None):
                 if not isinstance(target_ion, Element):
                     raise TypeError('The beam_species must be an Element object.')
 
-                if not valid_ionisation(target_ion, target_ionisation):
-                    raise ValueError('Ionisation level is larger than the number of protons in the target ion.')
+                if not valid_charge(target_ion, target_charge):
+                    raise ValueError('Charge state is larger than the number of protons in the target ion.')
 
-                path = os.path.join(repository_path, 'beam/emission/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
+                path = os.path.join(repository_path, 'beam/emission/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_charge))
 
                 # read in any existing rates
                 try:
@@ -88,7 +88,7 @@ def update_beam_emission_rates(rates, repository_path=None):
                 # add/replace data for a transition
                 for transition in transitions:
                     key = encode_transition(transition)
-                    rate = rates[beam_species][target_ion][target_ionisation][transition]
+                    rate = rates[beam_species][target_ion][target_charge][transition]
 
                     # sanitise and validate rate data
                     e = np.array(rate['e'], np.float64)
@@ -135,17 +135,17 @@ def update_beam_emission_rates(rates, repository_path=None):
                     json.dump(content, f, indent=2, sort_keys=True)
 
 
-def get_beam_emission_rate(beam_species, target_ion, target_ionisation, transition, repository_path=None):
+def get_beam_emission_rate(beam_species, target_ion, target_charge, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
-    path = os.path.join(repository_path, 'beam/emission/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_ionisation))
+    path = os.path.join(repository_path, 'beam/emission/{}/{}/{}.json'.format(beam_species.symbol.lower(), target_ion.symbol.lower(), target_charge))
     try:
         with open(path, 'r') as f:
             content = json.load(f)
         rate = content[encode_transition(transition)]
     except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested beam emission rate (beam species={}, target ion={}, target ionisation={}, transition={})'
-                           ' is not available.'.format(beam_species.symbol, target_ion.symbol, target_ionisation, transition))
+        raise RuntimeError('Requested beam emission rate (beam species={}, target ion={}, target charge={}, transition={})'
+                           ' is not available.'.format(beam_species.symbol, target_ion.symbol, target_charge, transition))
 
     # convert lists to numpy arrays
     rate['e'] = np.array(rate['e'], np.float64)

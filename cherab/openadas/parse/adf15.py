@@ -41,12 +41,12 @@ _L_LOOKUP = {
 }
 
 
-def parse_adf15(element, ionisation, adf_file_path):
+def parse_adf15(element, charge, adf_file_path):
     """
     Opens and parses ADAS ADF15 data files.
 
     :param element: Element described by ADF file.
-    :param ionisation: Ionisation described by ADF file.
+    :param charge: Charge state described by ADF file.
     :param adf_file_path: Path to ADF15 file from ADAS root.
     :return: Dictionary containing rates.
     """
@@ -54,7 +54,7 @@ def parse_adf15(element, ionisation, adf_file_path):
     if not isinstance(element, Element):
         raise TypeError('The element must be an Element object.')
 
-    ionisation = int(ionisation)
+    charge = int(charge)
 
     with open(adf_file_path, "r") as file:
 
@@ -64,22 +64,22 @@ def parse_adf15(element, ionisation, adf_file_path):
             raise ValueError('The specified path does not point to a valid ADF15 file.')
 
         # scrape transition information and wavelength
-        config = _scrape_metadata(file, element, ionisation)
+        config = _scrape_metadata(file, element, charge)
 
         # process rate data
         rates = RecursiveDict()
         for cls in ('excitation', 'recombination', 'thermalcx'):
-            for element, ionisations in config[cls].items():
-                for ionisation, transitions in ionisations.items():
+            for element, charge_states in config[cls].items():
+                for charge, transitions in charge_states.items():
                     for transition in transitions.keys():
-                        block_num = config[cls][element][ionisation][transition]
-                        rates[cls][element][ionisation][transition] = _extract_rate(file, block_num)
+                        block_num = config[cls][element][charge][transition]
+                        rates[cls][element][charge][transition] = _extract_rate(file, block_num)
 
     wavelengths = config['wavelength']
     return rates, wavelengths
 
 
-def _scrape_metadata(file, element, ionisation):
+def _scrape_metadata(file, element, charge):
     """
     Scrapes transition and block information from the comments.
     """
@@ -119,11 +119,11 @@ def _scrape_metadata(file, element, ionisation):
             else:
                 raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
 
-            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
-            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+            config[rate_type][element][charge][(upper_level, lower_level)] = block_num
+            config["wavelength"][element][charge][(upper_level, lower_level)] = wavelength
 
     # Use simple electron configuration structure for hydrogen-like ions
-    elif element.atomic_number - ionisation == 1:
+    elif element.atomic_number - charge == 1:
 
         pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
         while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
@@ -151,8 +151,8 @@ def _scrape_metadata(file, element, ionisation):
             else:
                 raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
 
-            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
-            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+            config[rate_type][element][charge][(upper_level, lower_level)] = block_num
+            config["wavelength"][element][charge][(upper_level, lower_level)] = wavelength
 
     # Use full electron configuration structure for anything else
     else:
@@ -208,8 +208,8 @@ def _scrape_metadata(file, element, ionisation):
             else:
                 raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
 
-            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
-            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+            config[rate_type][element][charge][(upper_level, lower_level)] = block_num
+            config["wavelength"][element][charge][(upper_level, lower_level)] = wavelength
 
     return config
 

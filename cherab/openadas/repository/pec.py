@@ -21,14 +21,14 @@ import json
 import numpy as np
 from cherab.core.utility import RecursiveDict
 from cherab.core.atomic import Element
-from .utility import DEFAULT_REPOSITORY_PATH, valid_ionisation, encode_transition
+from .utility import DEFAULT_REPOSITORY_PATH, valid_charge, encode_transition
 
 """
 Utilities for managing the local rate repository - PEC section.
 """
 
 
-def add_pec_excitation_rate(element, ionisation, transition, rate, repository_path=None):
+def add_pec_excitation_rate(element, charge, transition, rate, repository_path=None):
     """
     Adds a single PEC excitation rate to the repository.
 
@@ -37,7 +37,7 @@ def add_pec_excitation_rate(element, ionisation, transition, rate, repository_pa
     files.
 
     :param element:
-    :param ionisation:
+    :param charge:
     :param transition:
     :param rate:
     :param repository_path:
@@ -47,7 +47,7 @@ def add_pec_excitation_rate(element, ionisation, transition, rate, repository_pa
     update_pec_rates({
         'excitation': {
             element: {
-                ionisation: {
+                charge: {
                     transition: rate
                 }
             }
@@ -55,7 +55,7 @@ def add_pec_excitation_rate(element, ionisation, transition, rate, repository_pa
     }, repository_path)
 
 
-def add_pec_recombination_rate(element, ionisation, transition, rate, repository_path=None):
+def add_pec_recombination_rate(element, charge, transition, rate, repository_path=None):
     """
     Adds a single PEC recombination rate to the repository.
 
@@ -64,7 +64,7 @@ def add_pec_recombination_rate(element, ionisation, transition, rate, repository
     files.
 
     :param element:
-    :param ionisation:
+    :param charge:
     :param transition:
     :param rate:
     :param repository_path:
@@ -74,7 +74,7 @@ def add_pec_recombination_rate(element, ionisation, transition, rate, repository
     update_pec_rates({
         'recombination': {
             element: {
-                ionisation: {
+                charge: {
                     transition: rate
                 }
             }
@@ -82,7 +82,7 @@ def add_pec_recombination_rate(element, ionisation, transition, rate, repository
     }, repository_path)
 
 
-def add_pec_thermalcx_rate(element, ionisation, transition, rate, repository_path=None):
+def add_pec_thermalcx_rate(element, charge, transition, rate, repository_path=None):
     """
     Adds a single PEC thermalcx rate to the repository.
 
@@ -91,7 +91,7 @@ def add_pec_thermalcx_rate(element, ionisation, transition, rate, repository_pat
     files.
 
     :param element:
-    :param ionisation:
+    :param charge:
     :param transition:
     :param rate:
     :param repository_path:
@@ -101,7 +101,7 @@ def add_pec_thermalcx_rate(element, ionisation, transition, rate, repository_pat
     update_pec_rates({
         'thermalcx': {
             element: {
-                ionisation: {
+                charge: {
                     transition: rate
                 }
             }
@@ -113,7 +113,7 @@ def update_pec_rates(rates, repository_path=None):
     """
     PEC rate file structure
 
-    /pec/<class>/<element>/<ionisation>.json
+    /pec/<class>/<element>/<charge>.json
     """
 
     valid_classes = [
@@ -125,8 +125,8 @@ def update_pec_rates(rates, repository_path=None):
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
     for cls, elements in rates.items():
-        for element, ionisations in elements.items():
-            for ionisation, transitions in ionisations.items():
+        for element, charge_states in elements.items():
+            for charge, transitions in charge_states.items():
 
                 # sanitise and validate
                 cls = cls.lower()
@@ -136,10 +136,10 @@ def update_pec_rates(rates, repository_path=None):
                 if not isinstance(element, Element):
                     raise TypeError('The element must be an Element object.')
 
-                if not valid_ionisation(element, ionisation):
-                    raise ValueError('Ionisation level is larger than the number of protons in the element.')
+                if not valid_charge(element, charge):
+                    raise ValueError('Charge state is larger than the number of protons in the element.')
 
-                path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), ionisation))
+                path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), charge))
 
                 # read in any existing rates
                 try:
@@ -151,7 +151,7 @@ def update_pec_rates(rates, repository_path=None):
                 # add/replace data for a transition
                 for transition in transitions:
                     key = encode_transition(transition)
-                    data = rates[cls][element][ionisation][transition]
+                    data = rates[cls][element][charge][transition]
 
                     # sanitise/validate data
                     data['ne'] = np.array(data['ne'], np.float64)
@@ -183,29 +183,29 @@ def update_pec_rates(rates, repository_path=None):
                     json.dump(content, f, indent=2, sort_keys=True)
 
 
-def get_pec_excitation_rate(element, ionisation, transition, repository_path=None):
-    return _get_pec_rate('excitation', element, ionisation, transition, repository_path)
+def get_pec_excitation_rate(element, charge, transition, repository_path=None):
+    return _get_pec_rate('excitation', element, charge, transition, repository_path)
 
 
-def get_pec_recombination_rate(element, ionisation, transition, repository_path=None):
-    return _get_pec_rate('recombination', element, ionisation, transition, repository_path)
+def get_pec_recombination_rate(element, charge, transition, repository_path=None):
+    return _get_pec_rate('recombination', element, charge, transition, repository_path)
 
 
-def get_pec_thermalcx_rate(element, ionisation, transition, repository_path=None):
-    return _get_pec_rate('thermalcx', element, ionisation, transition, repository_path)
+def get_pec_thermalcx_rate(element, charge, transition, repository_path=None):
+    return _get_pec_rate('thermalcx', element, charge, transition, repository_path)
 
 
-def _get_pec_rate(cls, element, ionisation, transition, repository_path=None):
+def _get_pec_rate(cls, element, charge, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
-    path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), ionisation))
+    path = os.path.join(repository_path, 'pec/{}/{}/{}.json'.format(cls, element.symbol.lower(), charge))
     try:
         with open(path, 'r') as f:
             content = json.load(f)
         d = content[encode_transition(transition)]
     except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested PEC rate (class={}, element={}, ionisation={}, transition={})'
-                           ' is not available.'.format(cls, element.symbol, ionisation, transition))
+        raise RuntimeError('Requested PEC rate (class={}, element={}, charge={}, transition={})'
+                           ' is not available.'.format(cls, element.symbol, charge, transition))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
