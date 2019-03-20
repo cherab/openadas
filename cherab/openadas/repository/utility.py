@@ -40,14 +40,14 @@ def encode_transition(transition):
     return '{} -> {}'.format(upper, lower)
 
 
-def valid_ionisation(element, ionisation):
+def valid_charge(element, charge):
     """
-    Returns true if the element can be ionised to the specified level.
+    Returns true if the element can be ionised to the specified charge state level.
 
-    :param ionisation: Integer ionisation level.
+    :param charge: Integer charge state.
     :return: True/False.
     """
-    return ionisation <= element.atomic_number
+    return charge <= element.atomic_number
 
 
 

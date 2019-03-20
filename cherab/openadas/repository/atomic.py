@@ -23,10 +23,10 @@ import numpy as np
 
 from cherab.core.atomic import Element
 from cherab.core.utility import RecursiveDict
-from .utility import DEFAULT_REPOSITORY_PATH, valid_ionisation
+from .utility import DEFAULT_REPOSITORY_PATH, valid_charge
 
 
-def add_ionisation_rate(species, ionisation, rate, repository_path=None):
+def add_ionisation_rate(species, charge, rate, repository_path=None):
     """
     Adds a single ionisation rate to the repository.
 
@@ -40,7 +40,7 @@ def add_ionisation_rate(species, ionisation, rate, repository_path=None):
 
     update_ionisation_rates({
         species: {
-            ionisation: rate
+            charge: rate
         }
     }, repository_path)
 
@@ -51,7 +51,7 @@ def update_ionisation_rates(rates, repository_path=None):
 
     /ionisation/<species>.json
 
-    File contains multiple rates, indexed by ion ionisation.
+    File contains multiple rates, indexed by the ion charge state.
     """
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
@@ -67,7 +67,7 @@ def update_ionisation_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
-def add_recombination_rate(species, ionisation, rate, repository_path=None):
+def add_recombination_rate(species, charge, rate, repository_path=None):
     """
     Adds a single recombination rate to the repository.
 
@@ -81,7 +81,7 @@ def add_recombination_rate(species, ionisation, rate, repository_path=None):
 
     update_recombination_rates({
         species: {
-            ionisation: rate
+            charge: rate
         }
     }, repository_path)
 
@@ -92,7 +92,7 @@ def update_recombination_rates(rates, repository_path=None):
 
     /recombination/<species>.json
 
-    File contains multiple rates, indexed by ion ionisation.
+    File contains multiple rates, indexed by the ion charge state.
     """
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
@@ -117,10 +117,10 @@ def _update_and_write_adf11(species, rate_data, path):
         except FileNotFoundError:
             content = RecursiveDict()
 
-        for ionisation, rates in rate_data.items():
+        for charge, rates in rate_data.items():
 
-            if not valid_ionisation(species, ionisation):
-                raise ValueError('Ionisation level is larger than the number of protons in the specified species.')
+            if not valid_charge(species, charge):
+                raise ValueError('Charge state is larger than the number of protons in the specified species.')
 
             # sanitise and validate rate data
             te = np.array(rates['te'], np.float64)
@@ -137,7 +137,7 @@ def _update_and_write_adf11(species, rate_data, path):
                 raise ValueError('Electron temperature, density and rate data arrays have inconsistent sizes.')
 
             # update file content with new rate
-            content[ionisation] = {
+            content[charge] = {
                 'te': te.tolist(),
                 'ne': ne.tolist(),
                 'rate': rate_table.tolist(),
@@ -153,7 +153,7 @@ def _update_and_write_adf11(species, rate_data, path):
                 json.dump(content, f, indent=2, sort_keys=True)
 
 
-def get_ionisation_rate(element, ionisation, repository_path=None):
+def get_ionisation_rate(element, charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
@@ -161,12 +161,12 @@ def get_ionisation_rate(element, ionisation, repository_path=None):
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-        d = content[str(ionisation)]
+        d = content[str(charge)]
     except (FileNotFoundError, KeyError):
         print()
         print(path)
-        raise RuntimeError('Requested ionisation rate (element={}, ionisation={})'
-                           ' is not available.'.format(element.symbol, ionisation))
+        raise RuntimeError('Requested ionisation rate (element={}, charge={})'
+                           ' is not available.'.format(element.symbol, charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
@@ -176,7 +176,7 @@ def get_ionisation_rate(element, ionisation, repository_path=None):
     return d
 
 
-def get_recombination_rate(element, ionisation, repository_path=None):
+def get_recombination_rate(element, charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
@@ -184,10 +184,10 @@ def get_recombination_rate(element, ionisation, repository_path=None):
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-        d = content[str(ionisation)]
+        d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested recombination rate (element={}, ionisation={})'
-                           ' is not available.'.format(element.symbol, ionisation))
+        raise RuntimeError('Requested recombination rate (element={}, charge={})'
+                           ' is not available.'.format(element.symbol, charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
