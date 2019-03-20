@@ -9,33 +9,43 @@ from cherab.core.math import Interpolate2DCubic
 import matplotlib.pyplot as plt
 
 
-def solve_ion_balance(ne, te, ion_interpol, recom_interpol, log = False):
-    if log:
-        ne = np.log10(ne)
-        te = np.log10(ne)
-
+def solve_ion_balance(ne_b, te_b, ion_interpol, recom_interpol, log = False):
+    """
+    solves ionisation balance
+    """
     matbal = np.zeros((numstates, numstates))
 
-    matbal[0, 0] -= ion_interpol[0](ne, te)
-    matbal[0, 1] += recom_interpol[1](ne, te)
-    matbal[-1, -1] -= recom_interpol[10](ne, te)
-    matbal[-1, -2] += ion_interpol[9](ne, te)
-
-    for i in range(1, numstates - 1):
-        matbal[i, i - 1] += ion_interpol[i - 1](ne, te)
-        matbal[i, i] -= (ion_interpol[i](ne, te) + recom_interpol[i](ne, te))
-        matbal[i, i + 1] += recom_interpol[i + 1](ne, te)
-
     if log:
-        tmp = np.where(~(matbal == 0))
-        matbal[tmp] = 10 ** matbal[tmp]
+        ne_b = np.log10(ne_b)
+        te_b = np.log10(te_b)
+
+        matbal[0, 0] -= 10 ** ion_interpol[0](ne_b, te_b)
+        matbal[0, 1] += 10 ** recom_interpol[1](ne_b, te_b)
+        matbal[-1, -1] -= 10 ** recom_interpol[10](ne_b, te_b)
+        matbal[-1, -2] += 10 ** ion_interpol[9](ne_b, te_b)
+
+        for i in range(1, numstates - 1):
+            matbal[i, i - 1] += 10 ** ion_interpol[i - 1](ne_b, te_b)
+            matbal[i, i] -= (10 ** ion_interpol[i](ne_b, te_b) + 10 ** recom_interpol[i](ne_b, te_b))
+            matbal[i, i + 1] += 10 ** recom_interpol[i + 1](ne_b, te_b)
+    else:
+        matbal[0, 0] -= ion_interpol[0](ne_b, te_b)
+        matbal[0, 1] += recom_interpol[1](ne_b, te_b)
+        matbal[-1, -1] -= recom_interpol[10](ne_b, te_b)
+        matbal[-1, -2] += ion_interpol[9](ne_b, te_b)
+
+        for i in range(1, numstates - 1):
+            matbal[i, i - 1] += ion_interpol[i - 1](ne_b, te_b)
+            matbal[i, i] -= (ion_interpol[i](ne_b, te_b) + recom_interpol[i](ne_b, te_b))
+            matbal[i, i + 1] += recom_interpol[i + 1](ne_b, te_b)
+
 
     matbal = np.concatenate((matbal, np.ones((1, matbal.shape[1]))), axis=0)
     matbal = np.concatenate((matbal, np.zeros((matbal.shape[0], 1))), axis=1)
     solution = np.zeros((matbal.shape[0]))
     solution[-1] = 1
 
-    fracabun = np.linalg.lstsq(matbal, solution, rcond=-1)[0][0:-1]
+    fracabun = np.linalg.lstsq(matbal, solution, rcond=1e-60)[0][0:-1]
 
     return fracabun
 
@@ -45,11 +55,10 @@ adas = OpenADAS(permit_extrapolation=False)
 
 
 
-charge = 1
 numstates = neon.atomic_number + 1
 
 electron_density = 1e19
-electron_temperatures = [10**x for x in np.linspace(np.log10(1), np.log10(10000), num=100)]
+electron_temperatures = np.power(10, np.linspace(-0.69877, 4.1, num=500))
 
 ion_adas = parse_adf11(neon, "/compass/home/tomes/.cherab/openadas/download_cache/adf11/scd96/scd96_ne.dat")
 recom_adas = parse_adf11(neon, "/compass/home/tomes/.cherab/openadas/download_cache/adf11/acd96/acd96_ne.dat")
@@ -61,7 +70,7 @@ recom_interp_adas_origin = {}
 for i in range(neon.atomic_number):
     ac = i+1
     ion_interp_adas_origin[i] = Interpolate2DCubic(ion_adas[neon][ac]["ne"], ion_adas[neon][ac]["te"], ion_adas[neon][ac]["rates"])
-    recom_interp_adas_origin[i + 1] = Interpolate2DCubic(recom_adas[neon][ac]["ne"], recom_adas[neon][ac]["te"], recom_adas[neon][ac]["rates"])
+    recom_interp_adas_origin[ac] = Interpolate2DCubic(recom_adas[neon][ac]["ne"], recom_adas[neon][ac]["te"], recom_adas[neon][ac]["rates"])
 
 #############Create interpolators on adas data in normal number format
 ion_interp_adas_pow = {}
@@ -69,9 +78,9 @@ recom_interp_adas_pow = {}
 for i in range(neon.atomic_number):
     ac = i+1
     ion_interp_adas_pow[i] = Interpolate2DCubic(10**ion_adas[neon][ac]["ne"], 10**ion_adas[neon][ac]["te"], 10**ion_adas[neon][ac]["rates"])
-    recom_interp_adas_pow[i + 1] = Interpolate2DCubic(10**recom_adas[neon][ac]["ne"], 10**recom_adas[neon][ac]["te"], 10**recom_adas[neon][ac]["rates"])
+    recom_interp_adas_pow[ac] = Interpolate2DCubic(10**recom_adas[neon][ac]["ne"], 10**recom_adas[neon][ac]["te"], 10**recom_adas[neon][ac]["rates"])
 
-###################
+################### CHerab interpolators from the cherab-openadas database
 ion_interp_cherab = {}
 recom_interp_cherab = {}
 for i in np.linspace(1, 10, 10):
@@ -85,50 +94,99 @@ for i in np.linspace(1, 10, 10):
         pass
 
 
-
-ion_balance_adas_origin = np.zeros((neon.atomic_number+1, 100))
-ion_balance_adas_pow = np.zeros((neon.atomic_number+1, 100))
-ion_balance_cherab = np.zeros((neon.atomic_number+1, 100))
+#solve ionisation balance for given temperatures and density
+ion_balance_adas_origin = np.zeros((neon.atomic_number+1, electron_temperatures.shape[0]))
+ion_balance_adas_pow = np.zeros((neon.atomic_number+1, electron_temperatures.shape[0]))
+ion_balance_cherab = np.zeros((neon.atomic_number+1, electron_temperatures.shape[0]))
 for j, te in enumerate(electron_temperatures):
-    ion_balance_adas_origin[:, j] = solve_ion_balance(electron_density*1e-6, te, ion_interp_adas_origin, recom_interp_adas_origin, True)
-    ion_balance_adas_pow[:, j] = solve_ion_balance(electron_density*1e-6, te, ion_interp_adas_pow, recom_interp_adas_pow, False)
+    ion_balance_adas_origin[:, j] = solve_ion_balance(PerCm3ToPerM3.inv(electron_density), te, ion_interp_adas_origin, recom_interp_adas_origin, True)
+    ion_balance_adas_pow[:, j] = solve_ion_balance(PerCm3ToPerM3.inv(electron_density), te, ion_interp_adas_pow, recom_interp_adas_pow, False)
     ion_balance_cherab[:, j] = solve_ion_balance(electron_density, te, ion_interp_cherab, recom_interp_cherab, False)
 
-
+#just some plots
 if False:
+    fig_ionisation = plt.subplots(figsize=(12, 7))
+    ax = fig_ionisation[1]
+    fig_ionisation[0].subplots_adjust(right=0.7)
     for i in range(neon.atomic_number+1):
         try:
-            ionisation_rates_adas_origin = [10 ** ion_interp_adas_origin[i](np.log10(electron_density), np.log10(x)) * 1e-6 for x in electron_temperatures]
-            ionisation_rates_adas_pow = [ion_interp_adas_pow[i](np.log10(electron_density), np.log10(x)) * 1e-6 for x in electron_temperatures]
-            ionisation_rates_cherab = [ion_interp_cherab[i](electron_density, np.log10(x)) for x in electron_temperatures]
-            plt.loglog(electron_temperatures, ionisation_rates, '.-', label='Ne{}'.format(i))
+            ionisation_rates_adas_origin = [Cm3ToM3.to(10 ** ion_interp_adas_origin[i](np.log10(PerCm3ToPerM3.inv(electron_density)), np.log10(x))) for x in electron_temperatures]
+            ionisation_rates_adas_pow = [Cm3ToM3.to(ion_interp_adas_pow[i](PerCm3ToPerM3.inv(electron_density), x)) for x in electron_temperatures]
+            ionisation_rates_cherab = [ion_interp_cherab[i](electron_density, x) for x in electron_temperatures]
+            tmp = ax.loglog(electron_temperatures, ionisation_rates_adas_origin, '-', label='Ne{}'.format(i), alpha =0.5)
+            ax.loglog(electron_temperatures, ionisation_rates_adas_pow, '--', color=tmp[0].get_color(), alpha = 0.5)
+            ax.loglog(electron_temperatures, ionisation_rates_cherab, ':', color=tmp[0].get_color())
         except KeyError:
             continue
-    plt.ylim(1E-21, 1E-10)
-    plt.legend()
-    plt.xlabel("Electron Temperature (eV)")
-    plt.title("Ionisation Rates")
+
+    ax.plot([], [], "k-",label="adas origin")
+    ax.plot([], [], "k--", label="adas power10")
+    ax.plot([], [], "k:", label="cherab")
+    ax.set_ylim(1E-23, 1E-11)
+    ax.legend(loc=(1.05,0.1))
+    ax.set_xlabel("Electron Temperature (eV)")
+    ax.set_ylabel("ionisation rate [m^3s^-1]")
+    ax.set_title("Ionisation Rates")
+    fig_ionisation[0].tight_layout()
 
 
-    plt.figure()
-    for i in range(neon.atomic_number+1):
+    fig_recombination = plt.subplots(figsize=(12, 7))
+    ax = fig_recombination[1]
+    fig_recombination[0].subplots_adjust(right=0.7)
+    for i in range(1, neon.atomic_number+1):
         try:
-            recombination_rates = [10 ** recom_interp_adas_origin[i](np.log10(electron_density), np.log10(x)) * 1e-6 for x in electron_temperatures]
-            plt.loglog(electron_temperatures, recombination_rates, '.-', label='Ne{}'.format(i))
+            recombination_rates_adas_origin = [Cm3ToM3.to(10 ** recom_interp_adas_origin[i](np.log10(PerCm3ToPerM3.inv(electron_density)), np.log10(x))) for x in electron_temperatures]
+            recombination_rates_adas_pow = [Cm3ToM3.to(recom_interp_adas_pow[i](PerCm3ToPerM3.inv(electron_density), x)) for x in electron_temperatures]
+            recombination_rates_cherab = [recom_interp_cherab[i](electron_density, x) for x in electron_temperatures]
+            tmp = ax.loglog(electron_temperatures, recombination_rates_adas_origin, '-', label='Ne{}'.format(i), alpha =0.5)
+            ax.loglog(electron_temperatures, recombination_rates_adas_pow, '--', color=tmp[0].get_color(), alpha = 0.5)
+            ax.loglog(electron_temperatures, recombination_rates_cherab, ':', color=tmp[0].get_color())
         except KeyError:
             continue
-    plt.ylim(1E-21, 1E-10)
-    plt.legend()
+    ax.plot([], [], "k-",label="adas origin")
+    ax.plot([], [], "k--", label="adas power10")
+    ax.plot([], [], "k:", label="cherab")
+    plt.ylim(1E-21, 1E-15)
+    plt.legend(loc=(1.05,0.1))
     plt.xlabel("Electron Temperature (eV)")
+    ax.set_ylabel("ionisation rate [m^3s^-1]")
     plt.title("Recombination Rates")
+    fig_recombination[0].tight_layout()
 
 
-    plt.figure()
+    fig_ionbal = plt.subplots(figsize=(12, 7))
+    ax = fig_ionbal[1]
+    fig_ionbal[0].subplots_adjust(right=0.7)
     for i in range(neon.atomic_number+1):
-        plt.semilogx(electron_temperatures, ion_balance_adas_origin[i, :], '.-', label='Ne{} adas origin'.format(i))
-        plt.semilogx(electron_temperatures, ion_balance_adas_pow[i, :], '.--', label='Ne{} adas 10^x'.format(i))
-        plt.semilogx(electron_temperatures, ion_balance_cherab[i, :], '.:', label='Ne{} cherab'.format(i))
+        tmp = ax.semilogx(electron_temperatures, ion_balance_adas_origin[i, :], '-', label='Ne{}'.format(i), alpha = 0.5)
+        ax.semilogx(electron_temperatures, ion_balance_adas_pow[i, :], '--', color=tmp[0].get_color(), alpha = 0.5)
+        ax.semilogx(electron_temperatures, ion_balance_cherab[i, :], ':', color=tmp[0].get_color())
 
+
+    ax.plot([], [], "k-",label="adas origin")
+    ax.plot([], [], "k--", label="adas power10")
+    ax.plot([], [], "k:", label="cherab")
+    ax.legend(loc=(1.05,0.1))
+    ax.set_xlabel("Electron Temperature (eV)")
+    ax.set_ylabel("abundance [a.u.]")
+    ax.set_title('Fractional Abundance')
+    ax.set_ylim((0,1.2))
+    fig_ionbal[0].tight_layout()
+
+
+    fig_ionbal_part = plt.subplots()
+    ax = fig_ionbal_part[1]
+    for i in range(1):
+        tmp = ax.semilogx(electron_temperatures, ion_balance_adas_origin[i, :], '-', label='Ne{}'.format(i))
+        ax.semilogx(electron_temperatures, ion_balance_adas_pow[i, :], '--', color=tmp[0].get_color())
+        ax.semilogx(electron_temperatures, ion_balance_cherab[i, :], ':', color=tmp[0].get_color())
+
+    ax.plot([], [], "k-",label="adas origin")
+    ax.plot([], [], "k--", label="adas power10")
+    ax.plot([], [], "k:", label="cherab")
+    ax.set_xlim(1,10)
+    ax.set_ylim(0,1.2)
+    ax.legend()
     plt.xlabel("Electron Temperature (eV)")
     plt.title('Fractional Abundance')
     plt.show()
