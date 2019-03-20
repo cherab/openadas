@@ -182,14 +182,14 @@ def install_adf11prc(element, file_path, download=False, repository_path=None, a
     repository.update_cx_power_rates(rate_cherab, repository_path)
 
 
-def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, file_path, download=False, repository_path=None, adas_path=None):
+def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_charge, file_path, download=False, repository_path=None, adas_path=None):
     """
     Adds the rates in the ADF12 file to the repository.
 
     :param donor_ion: The donor ion element described by the rate file.
     :param donor_metastable: The donor ion metastable level.
     :param receiver_ion: The receiver ion element described by the rate file.
-    :param receiver_ionisation: The receiver ion ionisation level described by the rate file.
+    :param receiver_charge: The receiver ion ionisation level described by the rate file.
     :param file_path: Path relative to ADAS root.
     :param download: Attempt to download file if not present (Default=True).
     :param repository_path: Path to the repository in which to install the rates (optional).
@@ -202,7 +202,7 @@ def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rates = parse_adf12(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, path)
+    rates = parse_adf12(donor_ion, donor_metastable, receiver_ion, receiver_charge, path)
     repository.update_beam_cx_rates(rates, repository_path)
 
 
@@ -229,7 +229,7 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
     repository.update_wavelengths(wavelengths, repository_path)
 
 
-def install_adf21(beam_species, target_ion, target_ionisation, file_path, download=False, repository_path=None, adas_path=None):
+def install_adf21(beam_species, target_ion, target_charge, file_path, download=False, repository_path=None, adas_path=None):
     # """
     # Adds the rate defined in an ADF21 file to the repository.
     #
@@ -245,11 +245,11 @@ def install_adf21(beam_species, target_ion, target_ionisation, file_path, downlo
         raise ValueError('Could not locate the specified ADAS file.')
 
     # # decode file and write out rates
-    rate = parse_adf21(beam_species, target_ion, target_ionisation, path)
+    rate = parse_adf21(beam_species, target_ion, target_charge, path)
     repository.update_beam_stopping_rates(rate, repository_path)
 
 
-def install_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, file_path, download=False, repository_path=None, adas_path=None):
+def install_adf22bmp(beam_species, beam_metastable, target_ion, target_charge, file_path, download=False, repository_path=None, adas_path=None):
     pass
     # """
     # Adds the rate defined in an ADF21 file to the repository.
@@ -266,11 +266,11 @@ def install_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisatio
         raise ValueError('Could not locate the specified ADAS file.')
 
     # # decode file and write out rates
-    rate = parse_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, path)
+    rate = parse_adf22bmp(beam_species, beam_metastable, target_ion, target_charge, path)
     repository.update_beam_population_rates(rate, repository_path)
 
 
-def install_adf22bme(beam_species, target_ion, target_ionisation, transition, file_path, download=False, repository_path=None, adas_path=None):
+def install_adf22bme(beam_species, target_ion, target_charge, transition, file_path, download=False, repository_path=None, adas_path=None):
     pass
     # """
     # Adds the rate defined in an ADF21 file to the repository.
@@ -287,7 +287,7 @@ def install_adf22bme(beam_species, target_ion, target_ionisation, transition, fi
         raise ValueError('Could not locate the specified ADAS file.')
 
     # # decode file and write out rates
-    rate = parse_adf22bme(beam_species, target_ion, target_ionisation, transition, path)
+    rate = parse_adf22bme(beam_species, target_ion, target_charge, transition, path)
     repository.update_beam_emission_rates(rate, repository_path)
 
 

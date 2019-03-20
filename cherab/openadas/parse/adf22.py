@@ -20,31 +20,31 @@ from cherab.core.utility import RecursiveDict
 from .utility import parse_adas2x_rate
 
 
-def parse_adf22bmp(beam_species, beam_metastable, target_ion, target_ionisation, adf_file_path):
+def parse_adf22bmp(beam_species, beam_metastable, target_ion, target_charge, adf_file_path):
     """
     Opens and parses ADAS ADF22 BMP data files.
 
     :param beam_species: Element object describing the beam species.
     :param beam_metastable: The metastable level of the beam species.
     :param target_ion: Element object describing the target ion species.
-    :param target_ionisation: Ionisation level of the target species.
+    :param target_charge: Charge state of the target species.
     :param adf_file_path: Path to ADF15 file from ADAS root.
     :return: Dictionary containing rates.
     """
 
     rate = RecursiveDict()
     with open(adf_file_path, 'r') as file:
-        rate[beam_species][beam_metastable][target_ion][target_ionisation] = parse_adas2x_rate(file)
+        rate[beam_species][beam_metastable][target_ion][target_charge] = parse_adas2x_rate(file)
     return rate
 
 
-def parse_adf22bme(beam_species, target_ion, target_ionisation, transition, adf_file_path):
+def parse_adf22bme(beam_species, target_ion, target_charge, transition, adf_file_path):
     """
     Opens and parses ADAS ADF22 BME data files.
 
     :param beam_species: Element object describing the beam species.
     :param target_ion: Element object describing the target ion species.
-    :param target_ionisation: Ionisation level of the target species.
+    :param target_charge: Charge state of the target species.
     :param transition: Atomic transition tuple (upper level, lower level).
     :param adf_file_path: Path to ADF15 file from ADAS root.
     :return: Dictionary containing rates.
@@ -52,5 +52,5 @@ def parse_adf22bme(beam_species, target_ion, target_ionisation, transition, adf_
 
     rate = RecursiveDict()
     with open(adf_file_path, 'r') as file:
-        rate[beam_species][target_ion][target_ionisation][transition] = parse_adas2x_rate(file)
+        rate[beam_species][target_ion][target_charge][transition] = parse_adas2x_rate(file)
     return rate
