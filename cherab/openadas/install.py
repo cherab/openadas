@@ -34,6 +34,9 @@ def install_files(configuration, download=False, repository_path=None, adas_path
         if adf.lower() == 'adf11acd':
             for args in configuration[adf]:
                 install_adf11acd(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf11ccd':
+            for args in configuration[adf]:
+                install_adf11ccd(*args, download=download, repository_path=repository_path, adas_path=adas_path)
         if adf.lower() == 'adf11plt':
             for args in configuration[adf]:
                 install_adf11plt(*args, download=download, repository_path=repository_path, adas_path=adas_path)
@@ -103,6 +106,26 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
     rate = parse_adf11(element, path)
     repository.update_recombination_rates(rate, repository_path)
 
+
+def install_adf11ccd(element, file_path, download=False, repository_path=None, adas_path=None):
+    """
+    Adds the thermal charge exchange rate defined in an ADF11 file to the repository.
+
+    :param element: The element described by the rate file.
+    :param file_path: Path relative to ADAS root.
+    :param download: Attempt to download file if not present (Default=True).
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
+    """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # decode file and write out rates
+    rate = parse_adf11(element, path)
+    repository.update_thermalchargeexchange_rates(rate, repository_path)
 
 def install_adf11plt(element, file_path, download=False, repository_path=None, adas_path=None):
     """

@@ -86,6 +86,21 @@ class OpenADAS(AtomicData):
 
         return RecombinationRate(data, extrapolate=self._permit_extrapolation)
 
+    def thermalchargeexchange_rate(self, ion, charge):
+
+        if isinstance(ion, Isotope):
+            ion = ion.element
+
+        try:
+            data = repository.get_recombination_rate(ion, charge)
+
+        except RuntimeError:
+            if self._missing_rates_return_null:
+                return NullRecombinationRate()
+            raise
+
+        return RecombinationRate(data, extrapolate=self._permit_extrapolation)
+
     def beam_cx_pec(self, donor_ion, receiver_ion, receiver_charge, transition):
         """
 

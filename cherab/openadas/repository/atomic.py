@@ -108,6 +108,47 @@ def update_recombination_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
+def add_thermalchargeexchange_rate(species, charge, rate, repository_path=None):
+    """
+    Adds a single thermal charge exchange rate to the repository.
+
+    If adding multiple rates, consider using the update_recombination_rates()
+    function instead. The update function avoids repeatedly opening and closing
+    the rate files.
+
+    :param repository_path:
+    :return:
+    """
+
+    update_thermalchargeexchange_rates({
+        species: {
+            charge: rate
+        }
+    }, repository_path)
+
+
+def update_thermalchargeexchange_rates(rates, repository_path=None):
+    """
+    Thermal charge exchange rate file structure
+
+    /recombination/<species>.json
+
+    File contains multiple rates, indexed by the ion charge state.
+    """
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+
+    for species, rate_data in rates.items():
+
+        # sanitise and validate arguments
+        if not isinstance(species, Element):
+            raise TypeError('The species must be an Element object.')
+
+        path = os.path.join(repository_path, 'thermalchargeexchange/{}.json'.format(species.symbol.lower()))
+
+        _update_and_write_adf11(species, rate_data, path)
+
+
 def _update_and_write_adf11(species, rate_data, path):
 
         # read in any existing rates
@@ -181,6 +222,27 @@ def get_recombination_rate(element, charge, repository_path=None):
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
     path = os.path.join(repository_path, 'recombination/{}.json'.format(element.symbol.lower()))
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+        d = content[str(charge)]
+    except (FileNotFoundError, KeyError):
+        raise RuntimeError('Requested recombination rate (element={}, charge={})'
+                           ' is not available.'.format(element.symbol, charge))
+
+    # convert to numpy arrays
+    d['ne'] = np.array(d['ne'], np.float64)
+    d['te'] = np.array(d['te'], np.float64)
+    d['rate'] = np.array(d['rate'], np.float64)
+
+    return d
+
+
+def get_thermalchargeexchange_rate(element, charge, repository_path=None):
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+
+    path = os.path.join(repository_path, 'thermalchargeexchange/{}.json'.format(element.symbol.lower()))
     try:
         with open(path, 'r') as f:
             content = json.load(f)
