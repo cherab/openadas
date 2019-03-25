@@ -112,7 +112,9 @@ def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, d
     """
     Adds the thermal charge exchange rate defined in an ADF11 file to the repository.
 
-    :param element: The element described by the rate file.
+    :param donor_element: Element donating the electron, for the case of ADF11 files it is neutral hydrogen.
+    :param donor_charge: Charge of the donor atom/ion.
+    :param receiver_element: Element receiving the electron.
     :param file_path: Path relative to ADAS root.
     :param download: Attempt to download file if not present (Default=True).
     :param repository_path: Path to the repository in which to install the rates (optional).
