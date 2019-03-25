@@ -18,6 +18,7 @@
 
 from cherab.core cimport IonisationRate as CoreIonisationRate
 from cherab.core cimport RecombinationRate as CoreRecombinationRate
+from cherab.core cimport ThermalCXRate as CoreThermalCXRate
 from cherab.core.math cimport Interpolate2DCubic
 
 
@@ -44,4 +45,17 @@ cdef class RecombinationRate(CoreRecombinationRate):
 
 
 cdef class NullRecombinationRate(CoreRecombinationRate):
+    pass
+
+
+cdef class ThermalCXRate(CoreThermalCXRate):
+
+    cdef:
+        readonly dict raw_data
+        readonly double wavelength
+        readonly tuple density_range, temperature_range
+        Interpolate2DCubic _rate
+
+
+cdef class NullThermalCXRate(CoreThermalCXRate):
     pass

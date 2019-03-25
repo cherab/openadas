@@ -65,6 +65,21 @@ def populate(download=True, repository_path=None, adas_path=None):
             (krypton, 'adf11/acd89/acd89_kr.dat'),
             (xenon, 'adf11/acd89/acd89_xe.dat'),
         ),
+        'adf11ccd': (
+            # (donor_element, donor_charge, receiver_element, file_path)
+            (hydrogen, 0, hydrogen, 'adf11/ccd96/ccd96_h.dat'),
+            (hydrogen, 0, helium, 'adf11/ccd96/ccd96_he.dat'),
+            (hydrogen, 0, lithium, 'adf11/ccd89/ccd89_li.dat'),
+            (hydrogen, 0, beryllium, 'adf11/ccd89/ccd89_be.dat'),
+            (hydrogen, 0, boron, 'adf11/ccd89/ccd89_b.dat'),
+            (hydrogen, 0, carbon, 'adf11/ccd96/ccd96_c.dat'),
+            (hydrogen, 0, nitrogen, 'adf11/ccd89/ccd89_n.dat'),
+            (hydrogen, 0, oxygen, 'adf11/ccd89/ccd89_o.dat'),
+            (hydrogen, 0, neon, 'adf11/ccd89/ccd89_ne.dat'),
+            (hydrogen, 0, argon, 'adf11/ccd89/ccd89_ar.dat'),
+            (hydrogen, 0, krypton, 'adf11/ccd89/ccd89_kr.dat'),
+            (hydrogen, 0, xenon, 'adf11/ccd89/ccd89_xe.dat'),
+        ),
         'adf11plt': (
             (hydrogen, 'adf11/plt12/plt12_h.dat'),
             (helium, 'adf11/plt96/plt96_he.dat'),

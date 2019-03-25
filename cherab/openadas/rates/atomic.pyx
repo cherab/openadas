@@ -97,3 +97,43 @@ cdef class NullRecombinationRate(CoreRecombinationRate):
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
         return 0.0
+
+
+cdef class ThermalCXRate(CoreThermalCXRate):
+
+    def __init__(self, dict data, extrapolate=False):
+        """
+        :param data: Dictionary containing rate data.
+        :param extrapolate: Enable extrapolation (default=False).
+        """
+
+        self.raw_data = data
+
+        # unpack
+        ne = data['ne']
+        te = data['te']
+        rate =  data['rate']
+
+        # store limits of data
+        self.density_range = ne.min(), ne.max()
+        self.temperature_range = te.min(), te.max()
+
+        # interpolate rate
+        self._rate = Interpolate2DCubic(
+            ne, te, rate, extrapolate=extrapolate, extrapolation_type="quadratic"
+        )
+
+    cpdef double evaluate(self, double density, double temperature) except? -1e999:
+
+        # prevent -ve values (possible if extrapolation enabled)
+        return max(0, self._rate.evaluate(density, temperature))
+
+
+cdef class NullThermalCXRate(CoreThermalCXRate):
+    """
+    A PEC rate that always returns zero.
+    Needed for use cases where the required atomic data is missing.
+    """
+
+    cpdef double evaluate(self, double density, double temperature) except? -1e999:
+        return 0.0
