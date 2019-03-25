@@ -19,7 +19,7 @@ import os
 import urllib
 from cherab.openadas import repository
 from cherab.openadas.parse import *
-
+from cherab.core.utility import RecursiveDict
 
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
 OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
@@ -34,6 +34,9 @@ def install_files(configuration, download=False, repository_path=None, adas_path
         if adf.lower() == 'adf11acd':
             for args in configuration[adf]:
                 install_adf11acd(*args, download=download, repository_path=repository_path, adas_path=adas_path)
+        if adf.lower() == 'adf11ccd':
+            for args in configuration[adf]:
+                install_adf11ccd(*args, download=download, repository_path=repository_path, adas_path=adas_path)
         if adf.lower() == 'adf11plt':
             for args in configuration[adf]:
                 install_adf11plt(*args, download=download, repository_path=repository_path, adas_path=adas_path)
@@ -102,6 +105,36 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
     # decode file and write out rates
     rate = parse_adf11(element, path)
     repository.update_recombination_rates(rate, repository_path)
+
+
+def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, download=False,
+                     repository_path=None, adas_path=None):
+    """
+    Adds the thermal charge exchange rate defined in an ADF11 file to the repository.
+
+    :param donor_element: Element donating the electron, for the case of ADF11 files it is
+      neutral hydrogen.
+    :param donor_charge: Charge of the donor atom/ion.
+    :param receiver_element: Element receiving the electron.
+    :param file_path: Path relative to ADAS root.
+    :param download: Attempt to download file if not present (Default=True).
+    :param repository_path: Path to the repository in which to install the rates (optional).
+    :param adas_path: Path to ADAS files repository (optional).
+    """
+
+    print('Installing {}...'.format(file_path))
+    path = _locate_adas_file(file_path, download, adas_path)
+    if not path:
+        raise ValueError('Could not locate the specified ADAS file.')
+
+    # decode file and write out rates
+    rate = parse_adf11(receiver_element, path)
+
+    # reshape rate dictionary to match cherab convention
+    ccd_rate = RecursiveDict()
+    ccd_rate[donor_element][donor_charge] = rate
+
+    repository.update_thermal_cx_rates(ccd_rate, repository_path)
 
 
 def install_adf11plt(element, file_path, download=False, repository_path=None, adas_path=None):

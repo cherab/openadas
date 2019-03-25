@@ -108,6 +108,55 @@ def update_recombination_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
+def add_thermal_cx_rate(donor_element, donor_charge, receiver_element, rate, repository_path=None):
+
+    """
+    Adds a single thermal charge exchange rate to the repository.
+
+    If adding multiple rates, consider using the update_recombination_rates()
+    function instead. The update function avoids repeatedly opening and closing
+    the rate files.
+
+    :param donor_element: Element donating the electron.
+    :param donor_charge: Charge of the donating atom/ion
+    :param receiver_element: Element receiving the electron
+    :param rate: rates
+    :param repository_path:
+    :return:
+    """
+
+    rates2update = RecursiveDict()
+    rates2update[donor_element][donor_charge][receiver_element] = rate
+
+    update_thermal_cx_rates(rates2update, repository_path)
+
+
+def update_thermal_cx_rates(rates, repository_path=None):
+    """
+    Thermal charge exchange rate file structure
+
+    /thermal_cx/<donor_element>/<donor_charge>/<receiver_element>.json
+
+    File contains multiple rates, indexed by the ion charge state.
+    """
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+
+    for donor_element in rates.keys():
+        for donor_charge in rates[donor_element].keys():
+            for receiver_element, rate_data in rates[donor_element][donor_charge].items():
+
+                # sanitise and validate arguments
+                if not isinstance(receiver_element, Element):
+                    raise TypeError('The receiver_element must be an Element object.')
+
+                rate_path = 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(),
+                                                                 donor_charge, receiver_element.symbol.lower())
+                path = os.path.join(repository_path, rate_path)
+
+                _update_and_write_adf11(receiver_element, rate_data, path)
+
+
 def _update_and_write_adf11(species, rate_data, path):
 
         # read in any existing rates
@@ -188,6 +237,30 @@ def get_recombination_rate(element, charge, repository_path=None):
     except (FileNotFoundError, KeyError):
         raise RuntimeError('Requested recombination rate (element={}, charge={})'
                            ' is not available.'.format(element.symbol, charge))
+
+    # convert to numpy arrays
+    d['ne'] = np.array(d['ne'], np.float64)
+    d['te'] = np.array(d['te'], np.float64)
+    d['rate'] = np.array(d['rate'], np.float64)
+
+    return d
+
+
+def get_thermal_cx_rate(donor_element, donor_charge, receiver_element, receiver_charge, repository_path=None):
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+
+    rate_path = 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(), donor_charge,
+                                                     receiver_element.symbol.lower())
+    path = os.path.join(repository_path, rate_path)
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+        d = content[str(receiver_charge)]
+    except (FileNotFoundError, KeyError):
+        raise RuntimeError('Requested thermal charge-exchange rate (donor={}, donor charge={}, receiver={})'
+                           ' is not available.'
+                           ''.format(donor_element.symbol, donor_charge, receiver_element.symbol, receiver_charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
