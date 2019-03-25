@@ -99,7 +99,7 @@ cdef class NullRecombinationRate(CoreRecombinationRate):
         return 0.0
 
 
-cdef class ThermalChargeExchangeRate(CoreRecombinationRate):
+cdef class ThermalCXRate(CoreThermalCXRate):
 
     def __init__(self, dict data, extrapolate=False):
         """
@@ -130,7 +130,7 @@ cdef class ThermalChargeExchangeRate(CoreRecombinationRate):
         return max(0, self._rate.evaluate(density, temperature))
 
 
-cdef class NullThermalChargeExchangeRate(CoreRecombinationRate):
+cdef class NullThermalCXRate(CoreThermalCXRate):
     """
     A PEC rate that always returns zero.
     Needed for use cases where the required atomic data is missing.

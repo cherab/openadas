@@ -19,7 +19,7 @@ import os
 import urllib
 from cherab.openadas import repository
 from cherab.openadas.parse import *
-
+from cherab.core.utility import RecursiveDict
 
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
 OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
@@ -107,7 +107,8 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
     repository.update_recombination_rates(rate, repository_path)
 
 
-def install_adf11ccd(element, file_path, download=False, repository_path=None, adas_path=None):
+def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, download=False,
+                     repository_path=None, adas_path=None):
     """
     Adds the thermal charge exchange rate defined in an ADF11 file to the repository.
 
@@ -124,8 +125,12 @@ def install_adf11ccd(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = parse_adf11(element, path)
-    repository.update_thermalchargeexchange_rates(rate, repository_path)
+    rate = parse_adf11(receiver_element, path)
+
+    ccd_rate = RecursiveDict()
+    ccd_rate[donor_element][donor_charge] = rate #reshape rate dictionary to match cherab convention
+
+    repository.update_thermal_cx_rates(ccd_rate, repository_path)
 
 def install_adf11plt(element, file_path, download=False, repository_path=None, adas_path=None):
     """

@@ -108,7 +108,7 @@ def update_recombination_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
-def add_thermalchargeexchange_rate(species, charge, rate, repository_path=None):
+def add_thermal_cx_rate(species, charge, rate, repository_path=None):
     """
     Adds a single thermal charge exchange rate to the repository.
 
@@ -120,14 +120,14 @@ def add_thermalchargeexchange_rate(species, charge, rate, repository_path=None):
     :return:
     """
 
-    update_thermalchargeexchange_rates({
+    update_thermal_cx_rates({
         species: {
             charge: rate
         }
     }, repository_path)
 
 
-def update_thermalchargeexchange_rates(rates, repository_path=None):
+def update_thermal_cx_rates(rates, repository_path=None):
     """
     Thermal charge exchange rate file structure
 
@@ -138,15 +138,18 @@ def update_thermalchargeexchange_rates(rates, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
-    for species, rate_data in rates.items():
+    for donor_element in rates.keys():
+        for donor_charge in rates[donor_element].keys():
+            for species, rate_data in rates[donor_element][donor_charge].items():
 
-        # sanitise and validate arguments
-        if not isinstance(species, Element):
-            raise TypeError('The species must be an Element object.')
+                # sanitise and validate arguments
+                if not isinstance(species, Element):
+                    raise TypeError('The species must be an Element object.')
 
-        path = os.path.join(repository_path, 'thermalchargeexchange/{}.json'.format(species.symbol.lower()))
+                path = os.path.join(repository_path, 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(),
+                                                                                          donor_charge, species.symbol.lower()))
 
-        _update_and_write_adf11(species, rate_data, path)
+                _update_and_write_adf11(species, rate_data, path)
 
 
 def _update_and_write_adf11(species, rate_data, path):
@@ -238,18 +241,19 @@ def get_recombination_rate(element, charge, repository_path=None):
     return d
 
 
-def get_thermalchargeexchange_rate(element, charge, repository_path=None):
+def get_thermal_cx_rate(donor_element, donor_charge, receiver_element, receiver_charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
-    path = os.path.join(repository_path, 'thermalchargeexchange/{}.json'.format(element.symbol.lower()))
+    path = os.path.join(repository_path, 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(),
+                                                                              donor_charge, receiver_element.symbol.lower()))
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-        d = content[str(charge)]
+        d = content[str(receiver_charge)]
     except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested recombination rate (element={}, charge={})'
-                           ' is not available.'.format(element.symbol, charge))
+        raise RuntimeError('Requested thermal charge-exchange rate (donor={}, donor charge={}, receiver={})'
+                           ' is not available.'.format(donor_element.symbol, donor_charge, receiver_element.symbol, receiver_charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
