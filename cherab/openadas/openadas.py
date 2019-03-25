@@ -100,7 +100,7 @@ class OpenADAS(AtomicData):
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullRecombinationRate()
+                return NullThermalCXRate()
             raise
 
         return ThermalCXRate(data, extrapolate=self._permit_extrapolation)
