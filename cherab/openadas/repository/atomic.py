@@ -108,7 +108,8 @@ def update_recombination_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
-def add_thermal_cx_rate(species, charge, rate, repository_path=None):
+def add_thermal_cx_rate(donor_element, donor_charge, receiver_element, rate, repository_path=None):
+
     """
     Adds a single thermal charge exchange rate to the repository.
 
@@ -116,15 +117,18 @@ def add_thermal_cx_rate(species, charge, rate, repository_path=None):
     function instead. The update function avoids repeatedly opening and closing
     the rate files.
 
+    :param donor_element: Element donating the electron.
+    :param donor_charge: Charge of the donating atom/ion
+    :param receiver_element: Element receiving the electron
+    :param rate: rates
     :param repository_path:
     :return:
     """
 
-    update_thermal_cx_rates({
-        species: {
-            charge: rate
-        }
-    }, repository_path)
+    rates2update = RecursiveDict()
+    rates2update[donor_element][donor_charge][receiver_element] = rate
+
+    update_thermal_cx_rates(rates2update, repository_path)
 
 
 def update_thermal_cx_rates(rates, repository_path=None):
