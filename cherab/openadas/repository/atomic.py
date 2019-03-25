@@ -135,7 +135,7 @@ def update_thermal_cx_rates(rates, repository_path=None):
     """
     Thermal charge exchange rate file structure
 
-    /recombination/<species>.json
+    /thermal_cx/<donor_element>/<donor_charge>/<receiver_element>.json
 
     File contains multiple rates, indexed by the ion charge state.
     """
@@ -144,16 +144,17 @@ def update_thermal_cx_rates(rates, repository_path=None):
 
     for donor_element in rates.keys():
         for donor_charge in rates[donor_element].keys():
-            for species, rate_data in rates[donor_element][donor_charge].items():
+            for receiver_element, rate_data in rates[donor_element][donor_charge].items():
 
                 # sanitise and validate arguments
-                if not isinstance(species, Element):
-                    raise TypeError('The species must be an Element object.')
+                if not isinstance(receiver_element, Element):
+                    raise TypeError('The receiver_element must be an Element object.')
 
-                path = os.path.join(repository_path, 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(),
-                                                                                          donor_charge, species.symbol.lower()))
+                rate_path = 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(),
+                                                                 donor_charge, receiver_element.symbol.lower())
+                path = os.path.join(repository_path, rate_path)
 
-                _update_and_write_adf11(species, rate_data, path)
+                _update_and_write_adf11(receiver_element, rate_data, path)
 
 
 def _update_and_write_adf11(species, rate_data, path):
@@ -249,15 +250,17 @@ def get_thermal_cx_rate(donor_element, donor_charge, receiver_element, receiver_
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
-    path = os.path.join(repository_path, 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(),
-                                                                              donor_charge, receiver_element.symbol.lower()))
+    rate_path = 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(), donor_charge,
+                                                     receiver_element.symbol.lower())
+    path = os.path.join(repository_path, rate_path)
     try:
         with open(path, 'r') as f:
             content = json.load(f)
         d = content[str(receiver_charge)]
     except (FileNotFoundError, KeyError):
         raise RuntimeError('Requested thermal charge-exchange rate (donor={}, donor charge={}, receiver={})'
-                           ' is not available.'.format(donor_element.symbol, donor_charge, receiver_element.symbol, receiver_charge))
+                           ' is not available.'
+                           ''.format(donor_element.symbol, donor_charge, receiver_element.symbol, receiver_charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)

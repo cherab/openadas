@@ -112,7 +112,8 @@ def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, d
     """
     Adds the thermal charge exchange rate defined in an ADF11 file to the repository.
 
-    :param donor_element: Element donating the electron, for the case of ADF11 files it is neutral hydrogen.
+    :param donor_element: Element donating the electron, for the case of ADF11 files it is
+      neutral hydrogen.
     :param donor_charge: Charge of the donor atom/ion.
     :param receiver_element: Element receiving the electron.
     :param file_path: Path relative to ADAS root.
@@ -129,10 +130,12 @@ def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, d
     # decode file and write out rates
     rate = parse_adf11(receiver_element, path)
 
+    # reshape rate dictionary to match cherab convention
     ccd_rate = RecursiveDict()
-    ccd_rate[donor_element][donor_charge] = rate #reshape rate dictionary to match cherab convention
+    ccd_rate[donor_element][donor_charge] = rate
 
     repository.update_thermal_cx_rates(ccd_rate, repository_path)
+
 
 def install_adf11plt(element, file_path, download=False, repository_path=None, adas_path=None):
     """

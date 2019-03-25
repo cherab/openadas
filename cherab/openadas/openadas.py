@@ -95,8 +95,8 @@ class OpenADAS(AtomicData):
             receiver_element = receiver_element.element
 
         try:
-            data = repository.get_thermal_cx_rate(donor_element, donor_charge, receiver_element,
-                                                             receiver_charge)
+            data = repository.get_thermal_cx_rate(donor_element, donor_charge,
+                                                  receiver_element, receiver_charge)
 
         except RuntimeError:
             if self._missing_rates_return_null:

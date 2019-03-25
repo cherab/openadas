@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from cherab.core.atomic import neon, carbon, helium, hydrogen
 from cherab.openadas import OpenADAS
-from cherab.openadas.repository.atomic import get_thermal_cx_rate
 adas = OpenADAS(permit_extrapolation=True)
 
 
@@ -18,12 +17,12 @@ coef_tcx = {}
 for i in np.arange(1, elem.atomic_number+1):
     coef_tcx[i] = adas.thermal_cx_rate(hydrogen, 0, neon, int(i))
 
-
-#test correctness of available charge numbers
+    # test correctness of available charge numbers
     try:
-        adas.thermal_cx_rate(hydrogen,0, neon, i)
+        adas.thermal_cx_rate(hydrogen, 0, neon, i)
     except RuntimeError:
-        print("check for thermal charge exchange between neutral element and neutral hydrogen should not indeed be allowed")
+        print("Check that thermal charge exchange between a neutral element and neutral hydrogen "
+              "is not allowed.")
 
 
 fig_tcxrates = plt.subplots()
@@ -36,7 +35,11 @@ for i in range(1, elem.atomic_number+1):
     ax.set_ylabel("rate [m^3s^-1]")
     plt.title("Thermal Charge Exchange Rates")
 
-#test loading rates fro not allowed CX between neutrals
+
+plt.show()
+
+
+# test loading rates for CX between neutrals is not allowed
 try:
     coef_notallowed = adas.thermal_cx_rate(hydrogen, 0, neon, 0)
 except RuntimeError:

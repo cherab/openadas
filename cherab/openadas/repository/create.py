@@ -66,7 +66,7 @@ def populate(download=True, repository_path=None, adas_path=None):
             (xenon, 'adf11/acd89/acd89_xe.dat'),
         ),
         'adf11ccd': (
-            #donor_element, donor_charge, receiver_element file_path,
+            # (donor_element, donor_charge, receiver_element, file_path)
             (hydrogen, 0, hydrogen, 'adf11/ccd96/ccd96_h.dat'),
             (hydrogen, 0, helium, 'adf11/ccd96/ccd96_he.dat'),
             (hydrogen, 0, lithium, 'adf11/ccd89/ccd89_li.dat'),

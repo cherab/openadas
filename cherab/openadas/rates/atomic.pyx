@@ -123,7 +123,6 @@ cdef class ThermalCXRate(CoreThermalCXRate):
             ne, te, rate, extrapolate=extrapolate, extrapolation_type="quadratic"
         )
 
-
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
 
         # prevent -ve values (possible if extrapolation enabled)
