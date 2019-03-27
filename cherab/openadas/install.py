@@ -112,6 +112,7 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
 
     repository.update_recombination_rates(rate_cherab, repository_path)
 
+
 def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, download=False,
                      repository_path=None, adas_path=None):
     """
@@ -134,7 +135,7 @@ def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, d
 
     # decode file and write out rates
     rate_adas = parse_adf11(receiver_element, path)
-    rate_cherab =_notation_adas2cherab(rate_adas, "ccd")  # convert from adas to cherab notation
+    rate_cherab = _notation_adas2cherab(rate_adas, "ccd")  # convert from adas to cherab notation
 
     # reshape rate dictionary to match cherab convention
     rate_cherab_ccd = RecursiveDict()
@@ -356,6 +357,7 @@ def _locate_adas_file(file_path, download=False, adas_path=None):
 
     return path
 
+
 def _notation_adas2cherab(rate_adas, filetype):
     """
     Converts adas unit, charge and numeric notation to cherab notation
@@ -365,19 +367,19 @@ def _notation_adas2cherab(rate_adas, filetype):
     :return: nested dictionary with cherab rates and units notation
     """
 
-    #Charge correction will be applied if there is difference between adas and cherab charge notation
+    # Charge correction will be applied if there is difference between adas and cherab charge notation
     if filetype in ["scd", "ccd", "plt", "pls"]:
         charge_correction = int(-1)
     else:
         charge_correction = int(0)
 
-    #adas units, charge and number notation to be changed to cherab notation
+    # adas units, charge and number notation to be changed to cherab notation
     rate_cherab = RecursiveDict()
     for i in rate_adas.keys():
         for j in rate_adas[i].keys():
-            #convert from adas log10 in [cm**-3] notation to cherab [m**-3] electron density notation
+            # convert from adas log10 in [cm**-3] notation to cherab [m**-3] electron density notation
             rate_cherab[i][j + charge_correction]["ne"] = PerCm3ToPerM3.to(10**rate_adas[i][j]["ne"])
-            #convert from adas log10 to cherab electron temperature notation
+            # convert from adas log10 to cherab electron temperature notation
             rate_cherab[i][j + charge_correction]["te"] = 10**rate_adas[i][j]["te"]
             rate_cherab[i][j + charge_correction]["rates"] = Cm3ToM3.to(10**rate_adas[i][j]["rates"])
 
