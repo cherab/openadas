@@ -368,7 +368,7 @@ def _notation_adas2cherab(rate_adas, filetype):
     """
 
     # Charge correction will be applied if there is difference between adas and cherab charge notation
-    if filetype in ["scd", "ccd", "plt", "pls"]:
+    if filetype in ["scd", "plt", "pls"]:
         charge_correction = int(-1)
     else:
         charge_correction = int(0)
