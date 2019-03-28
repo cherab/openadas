@@ -1,3 +1,4 @@
+
 # Copyright 2016-2018 Euratom
 # Copyright 2016-2018 United Kingdom Atomic Energy Authority
 # Copyright 2016-2018 Centro de Investigaciones Energéticas, Medioambientales y Tecnológicas
@@ -15,11 +16,15 @@
 #
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
+
+
 import os
 import urllib
+
 from cherab.openadas import repository
 from cherab.openadas.parse import *
 from cherab.core.utility import RecursiveDict, PerCm3ToPerM3, Cm3ToM3
+
 
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
 OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
@@ -84,7 +89,7 @@ def install_adf11scd(element, file_path, download=False, repository_path=None, a
     # decode file and write out rates
     rate_adas = parse_adf11(element, path)
 
-    rate_cherab = _notation_adas2cherab(rate_adas, "scd")  # convert from adas to cherab notation
+    rate_cherab = _notation_adf11_adas2cherab(rate_adas, "scd")  # convert from adas to cherab notation
 
     repository.update_ionisation_rates(rate_cherab, repository_path)
 
@@ -108,7 +113,7 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
     # decode file and write out rates
     rate_adas = parse_adf11(element, path)
 
-    rate_cherab = _notation_adas2cherab(rate_adas, "acd")  # convert from adas to cherab notation
+    rate_cherab = _notation_adf11_adas2cherab(rate_adas, "acd")  # convert from adas to cherab notation
 
     repository.update_recombination_rates(rate_cherab, repository_path)
 
@@ -135,7 +140,7 @@ def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, d
 
     # decode file and write out rates
     rate_adas = parse_adf11(receiver_element, path)
-    rate_cherab = _notation_adas2cherab(rate_adas, "ccd")  # convert from adas to cherab notation
+    rate_cherab = _notation_adf11_adas2cherab(rate_adas, "ccd")  # convert from adas to cherab notation
 
     # reshape rate dictionary to match cherab convention
     rate_cherab_ccd = RecursiveDict()
@@ -163,7 +168,7 @@ def install_adf11plt(element, file_path, download=False, repository_path=None, a
     # decode file and write out rates
     rate_adas = parse_adf11(element, path)
 
-    rate_cherab = _notation_adas2cherab(rate_adas, "plt")  # convert from adas to cherab notation
+    rate_cherab = _notation_adf11_adas2cherab(rate_adas, "plt")  # convert from adas to cherab notation
 
     repository.update_line_power_rates(rate_cherab, repository_path)
 
@@ -187,7 +192,7 @@ def install_adf11prb(element, file_path, download=False, repository_path=None, a
     # decode file and write out rates
     rate_adas = parse_adf11(element, path)
 
-    rate_cherab = _notation_adas2cherab(rate_adas, "prb")  # convert from adas to cherab notation
+    rate_cherab = _notation_adf11_adas2cherab(rate_adas, "prb")  # convert from adas to cherab notation
 
     repository.update_continuum_power_rates(rate_cherab, repository_path)
 
@@ -211,7 +216,7 @@ def install_adf11prc(element, file_path, download=False, repository_path=None, a
     # decode file and write out rates
     rate_adas = parse_adf11(element, path)
 
-    rate_cherab = _notation_adas2cherab(rate_adas, "prc")  # convert from adas to cherab notation
+    rate_cherab = _notation_adf11_adas2cherab(rate_adas, "prc")  # convert from adas to cherab notation
 
     repository.update_cx_power_rates(rate_cherab, repository_path)
 
@@ -358,12 +363,13 @@ def _locate_adas_file(file_path, download=False, adas_path=None):
     return path
 
 
-def _notation_adas2cherab(rate_adas, filetype):
+def _notation_adf11_adas2cherab(rate_adas, filetype):
     """
     Converts adas unit, charge and numeric notation to cherab notation
+
     :param rate_adas: Nested dictionary of shape rate_adas[element][charge][te, ne, rates]
     :param filetype: string denoting adas adf11 file type to decide whether charge conversion is to be applied.
-    Will be applied for file types: "scd", "ccd", "plt", "pls"
+      Will be applied for file types: "scd", "ccd", "plt", "pls"
     :return: nested dictionary with cherab rates and units notation
     """
 

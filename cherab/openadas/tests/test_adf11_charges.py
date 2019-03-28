@@ -10,7 +10,7 @@ from cherab.openadas.rates.atomic import IonisationRate, RecombinationRate, Ther
 
 class TestADAS2CherabChargeConvention(unittest.TestCase):
 
-    def testionising_charge(self):
+    def test_ionising_charge(self):
 
         adas = OpenADAS(permit_extrapolation=False)
         # todo get a list of all elements and test
