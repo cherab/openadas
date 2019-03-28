@@ -65,10 +65,7 @@ def parse_adf11(element, adf_file_path):
                              "".join(lines[startsearch:i]).strip())  # replace unwanted chars
                 tmp = np.fromstring(tmp, sep="\t", dtype=float)  # put into nunpy array
                 densities = tmp[:n_densities]  # read density values
-                densities = 10**densities  # convert from log10(cm^-3) to cm^-3
-                densities = PerCm3ToPerM3.to(densities)  # convert units from cm^-3 to m^-3
                 temperatures = tmp[n_densities:]  # read temperature values
-                temperatures = 10**temperatures  # convert from log10(eV) to eV
                 startsearch = i
                 break
 
@@ -92,10 +89,6 @@ def parse_adf11(element, adf_file_path):
                     rates_table = np.fromstring(rates_table, sep="\t",
                                                 dtype=float).reshape((n_temperatures,
                                                                       n_densities))  # transform into an array
-
-                    # convert units from cm^3 to m^3
-                    rates_table = 10**rates_table
-                    rates_table = Cm3ToM3.to(rates_table)
 
                     rates[element][ion_charge]['ne'] = densities
                     rates[element][ion_charge]['te'] = temperatures
