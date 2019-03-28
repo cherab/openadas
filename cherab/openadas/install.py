@@ -19,7 +19,7 @@ import os
 import urllib
 from cherab.openadas import repository
 from cherab.openadas.parse import *
-from cherab.core.utility import RecursiveDict
+from cherab.core.utility import RecursiveDict, PerCm3ToPerM3, Cm3ToM3
 
 ADAS_DOWNLOAD_CACHE = os.path.expanduser('~/.cherab/openadas/download_cache')
 OPENADAS_FILE_URL = 'http://open.adas.ac.uk/download/'
@@ -82,8 +82,11 @@ def install_adf11scd(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = parse_adf11(element, path)
-    repository.update_ionisation_rates(rate, repository_path)
+    rate_adas = parse_adf11(element, path)
+
+    rate_cherab = _notation_adas2cherab(rate_adas, "scd")  # convert from adas to cherab notation
+
+    repository.update_ionisation_rates(rate_cherab, repository_path)
 
 
 def install_adf11acd(element, file_path, download=False, repository_path=None, adas_path=None):
@@ -103,8 +106,11 @@ def install_adf11acd(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = parse_adf11(element, path)
-    repository.update_recombination_rates(rate, repository_path)
+    rate_adas = parse_adf11(element, path)
+
+    rate_cherab = _notation_adas2cherab(rate_adas, "acd")  # convert from adas to cherab notation
+
+    repository.update_recombination_rates(rate_cherab, repository_path)
 
 
 def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, download=False,
@@ -128,13 +134,14 @@ def install_adf11ccd(donor_element, donor_charge, receiver_element, file_path, d
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = parse_adf11(receiver_element, path)
+    rate_adas = parse_adf11(receiver_element, path)
+    rate_cherab = _notation_adas2cherab(rate_adas, "ccd")  # convert from adas to cherab notation
 
     # reshape rate dictionary to match cherab convention
-    ccd_rate = RecursiveDict()
-    ccd_rate[donor_element][donor_charge] = rate
+    rate_cherab_ccd = RecursiveDict()
+    rate_cherab_ccd[donor_element][donor_charge] = rate_cherab
 
-    repository.update_thermal_cx_rates(ccd_rate, repository_path)
+    repository.update_thermal_cx_rates(rate_cherab_ccd, repository_path)
 
 
 def install_adf11plt(element, file_path, download=False, repository_path=None, adas_path=None):
@@ -154,8 +161,11 @@ def install_adf11plt(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = parse_adf11(element, path)
-    repository.update_line_power_rates(rate, repository_path)
+    rate_adas = parse_adf11(element, path)
+
+    rate_cherab = _notation_adas2cherab(rate_adas, "plt")  # convert from adas to cherab notation
+
+    repository.update_line_power_rates(rate_cherab, repository_path)
 
 
 def install_adf11prb(element, file_path, download=False, repository_path=None, adas_path=None):
@@ -175,8 +185,11 @@ def install_adf11prb(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = parse_adf11(element, path)
-    repository.update_continuum_power_rates(rate, repository_path)
+    rate_adas = parse_adf11(element, path)
+
+    rate_cherab = _notation_adas2cherab(rate_adas, "prb")  # convert from adas to cherab notation
+
+    repository.update_continuum_power_rates(rate_cherab, repository_path)
 
 
 def install_adf11prc(element, file_path, download=False, repository_path=None, adas_path=None):
@@ -196,8 +209,11 @@ def install_adf11prc(element, file_path, download=False, repository_path=None, a
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rate = parse_adf11(element, path)
-    repository.update_cx_power_rates(rate, repository_path)
+    rate_adas = parse_adf11(element, path)
+
+    rate_cherab = _notation_adas2cherab(rate_adas, "prc")  # convert from adas to cherab notation
+
+    repository.update_cx_power_rates(rate_cherab, repository_path)
 
 
 def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_charge, file_path, download=False, repository_path=None, adas_path=None):
@@ -340,3 +356,33 @@ def _locate_adas_file(file_path, download=False, adas_path=None):
             path = target
 
     return path
+
+
+def _notation_adas2cherab(rate_adas, filetype):
+    """
+    Converts adas unit, charge and numeric notation to cherab notation
+    :param rate_adas: Nested dictionary of shape rate_adas[element][charge][te, ne, rates]
+    :param filetype: string denoting adas adf11 file type to decide whether charge conversion is to be applied.
+    Will be applied for file types: "scd", "ccd", "plt", "pls"
+    :return: nested dictionary with cherab rates and units notation
+    """
+
+    # Charge correction will be applied if there is difference between adas and cherab charge notation
+    if filetype in ["scd", "plt", "pls"]:
+        charge_correction = int(-1)
+    else:
+        charge_correction = int(0)
+
+    # adas units, charge and number notation to be changed to cherab notation
+    rate_cherab = RecursiveDict()
+    for i in rate_adas.keys():
+        for j in rate_adas[i].keys():
+            # convert from adas log10 in [cm**-3] notation to cherab [m**-3] electron density notation
+            rate_cherab[i][j + charge_correction]["ne"] = PerCm3ToPerM3.to(10**rate_adas[i][j]["ne"])
+            # convert from adas log10 to cherab electron temperature notation
+            rate_cherab[i][j + charge_correction]["te"] = 10**rate_adas[i][j]["te"]
+            rate_cherab[i][j + charge_correction]["rates"] = Cm3ToM3.to(10**rate_adas[i][j]["rates"])
+
+    return rate_cherab
+
+
