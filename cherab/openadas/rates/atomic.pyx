@@ -46,7 +46,7 @@ cdef class IonisationRate(CoreIonisationRate):
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
 
-        #calculate rate and convert from log10 space to linear space
+        # calculate rate and convert from log10 space to linear space
         return 10 ** self._rate.evaluate(density, temperature)
 
 
@@ -87,7 +87,7 @@ cdef class RecombinationRate(CoreRecombinationRate):
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
 
-        #calculate rate and convert from log10 space to linear space
+        # calculate rate and convert from log10 space to linear space
         return 10 ** self._rate.evaluate(density, temperature)
 
 
@@ -127,7 +127,7 @@ cdef class ThermalCXRate(CoreThermalCXRate):
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
 
-        #calculate rate and convert from log10 space to linear space
+        # calculate rate and convert from log10 space to linear space
         return 10 ** self._rate.evaluate(density, temperature)
 
 
