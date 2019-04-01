@@ -212,8 +212,6 @@ def get_ionisation_rate(element, charge, repository_path=None):
             content = json.load(f)
         d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        print()
-        print(path)
         raise RuntimeError('Requested ionisation rate (element={}, charge={})'
                            ' is not available.'.format(element.symbol, charge))
 
