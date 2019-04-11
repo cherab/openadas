@@ -245,7 +245,7 @@ def install_adf12(donor_ion, donor_metastable, receiver_ion, receiver_charge, fi
     repository.update_beam_cx_rates(rates, repository_path)
 
 
-def install_adf15(element, ionisation, file_path, download=False, repository_path=None, adas_path=None):
+def install_adf15(element, ionisation, file_path, download=False, repository_path=None, adas_path=None, header_format=None):
     """
     Adds the rates in the ADF15 file to the repository.
 
@@ -263,7 +263,7 @@ def install_adf15(element, ionisation, file_path, download=False, repository_pat
         raise ValueError('Could not locate the specified ADAS file.')
 
     # decode file and write out rates
-    rates, wavelengths = parse_adf15(element, ionisation, path)
+    rates, wavelengths = parse_adf15(element, ionisation, path, header_format=header_format)
     repository.update_pec_rates(rates, repository_path)
     repository.update_wavelengths(wavelengths, repository_path)
 
