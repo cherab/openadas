@@ -281,7 +281,7 @@ class OpenADAS(AtomicData):
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullIonisationRate()
+                return NullLineRadiationPower(ion, charge)
             raise
 
         return LineRadiationPower(ion, charge, data, extrapolate=self._permit_extrapolation)
@@ -296,7 +296,7 @@ class OpenADAS(AtomicData):
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullIonisationRate()
+                return NullContinuumPower(ion, charge)
             raise
 
         return ContinuumPower(ion, charge, data, extrapolate=self._permit_extrapolation)
@@ -311,9 +311,7 @@ class OpenADAS(AtomicData):
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullIonisationRate()
+                return NullCXRadiationPower(ion, charge)
             raise
 
         return CXRadiationPower(ion, charge, data, extrapolate=self._permit_extrapolation)
-
-

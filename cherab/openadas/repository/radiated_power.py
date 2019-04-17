@@ -208,8 +208,6 @@ def get_line_radiated_power_rate(element, charge, repository_path=None):
             content = json.load(f)
         d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        print()
-        print(path)
         raise RuntimeError('Requested radiated power rate (element={}, charge={})'
                            ' is not available.'.format(element.symbol, charge))
 
@@ -231,8 +229,6 @@ def get_continuum_radiated_power_rate(element, charge, repository_path=None):
             content = json.load(f)
         d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        print()
-        print(path)
         raise RuntimeError('Requested radiated power rate (element={}, charge={})'
                            ' is not available.'.format(element.symbol, charge))
 
@@ -254,8 +250,6 @@ def get_cx_radiated_power_rate(element, charge, repository_path=None):
             content = json.load(f)
         d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        print()
-        print(path)
         raise RuntimeError('Requested radiated power rate (element={}, charge={})'
                            ' is not available.'.format(element.symbol, charge))
 
