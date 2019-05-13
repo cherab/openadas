@@ -6,6 +6,11 @@ from scipy.optimize import lsq_linear
 
 
 def get_rates_recombination(element):
+    """
+    load recombinatio rates for all ionic stages
+    :param element:
+    :return:
+    """
     coef_recom = {}
     for i in np.arange(1, elem.atomic_number + 1):
         coef_recom[i] = adas.recombination_rate(element, int(i))
@@ -14,6 +19,13 @@ def get_rates_recombination(element):
 
 
 def get_rates_tcx(donor, donor_charge, receiver):
+    """
+    load thermal charge-exchange recombination rates for all ionic stages
+    :param donor:
+    :param donor_charge:
+    :param receiver:
+    :return:
+    """
     coef_tcx = {}
     for i in np.arange(1, elem.atomic_number + 1):
         coef_tcx[i] = adas.thermal_cx_rate(donor, donor_charge, receiver, int(i))
@@ -22,17 +34,22 @@ def get_rates_tcx(donor, donor_charge, receiver):
 
 
 def get_rates_ionisation(element):
+    """
+    load ionisation rates for all ionic stages
+    :param element:
+    :return:
+    """
     coef_ionis = {}
     for i in np.arange(0, elem.atomic_number):
         coef_ionis[i] = adas.ionisation_rate(element, int(i))
 
     return coef_ionis
 
-def solve_ion_balance(element, n_e, t_e, coef_ion, coef_recom, nh0 = None, coef_tcx = None):
 
+def solve_ion_balance(element, n_e, t_e, coef_ion, coef_recom, nh0=None, coef_tcx=None):
     atomic_number = element.atomic_number
 
-    #construct the fractional abundance mat
+    # construct the fractional abundance mat
     matbal = np.zeros((atomic_number + 1, atomic_number + 1))
 
     matbal[0, 0] -= coef_ion[0](n_e, t_e)
@@ -52,24 +69,22 @@ def solve_ion_balance(element, n_e, t_e, coef_ion, coef_recom, nh0 = None, coef_
             matbal[i, i] -= nh0 / n_e * coef_tcx[i](n_e, t_e)
             matbal[i, i + 1] += nh0 / n_e * coef_tcx[i + 1](n_e, t_e)
 
-    #for some reason calculation of stage abundance seems to yield better results than calculation of fractional abun.
-    matbal = matbal * ne # multiply by ne to calulate abundance instead of fractional abundance
+    # for some reason calculation of stage abundance seems to yield better results than calculation of fractional abun.
+    matbal = matbal * ne  # multiply by ne to calulate abundance instead of fractional abundance
 
-    #add sum constraints. Sum of all stages should be equal to electron density
+    # add sum constraints. Sum of all stages should be equal to electron density
     matbal = np.concatenate((matbal, np.ones((1, matbal.shape[1]))), axis=0)
 
-    #construct RHS of the balance steady-state equation
+    # construct RHS of the balance steady-state equation
     rhs = np.zeros((matbal.shape[0]))
     rhs[-1] = ne
 
     abundance = lsq_linear(matbal, rhs, bounds=(0, ne))["x"]
 
-    #normalize to ne to get fractional abundance
-    frac_abundance = abundance/ne
+    # normalize to ne to get fractional abundance
+    frac_abundance = abundance / ne
 
     return frac_abundance
-
-
 
 
 # initialise the atomic data provider
@@ -82,23 +97,25 @@ nh0 = 1e15
 numstates = elem.atomic_number + 1
 
 # Collect rate coefficients
-coef_ion = get_rates_ionisation(elem)
-coef_recom = get_rates_recombination(elem)
-coef_tcx = get_rates_tcx(hydrogen, 0, elem)
+rates_ion = get_rates_ionisation(elem)
+rates_recom = get_rates_recombination(elem)
+rates_tcx = get_rates_tcx(hydrogen, 0, elem)
 
-electron_temperatures = [10 ** x for x in np.linspace(np.log10(coef_recom[1].raw_data["te"].min()),
-                                                      np.log10(coef_recom[1].raw_data["te"].max()),
+electron_temperatures = [10 ** x for x in np.linspace(np.log10(rates_recom[1].raw_data["te"].min()),
+                                                      np.log10(rates_recom[1].raw_data["te"].max()),
                                                       num=temperature_steps)]
-
+# calculate ionization balance for electron temperature rates
 ion_balance = np.zeros((elem.atomic_number + 1, len(electron_temperatures)))
 ion_balance_tcx = np.zeros((elem.atomic_number + 1, len(electron_temperatures)))
 for j, te in enumerate(electron_temperatures):
-    ion_balance[:, j] = solve_ion_balance(elem, ne, te, coef_ion, coef_recom)
-    ion_balance_tcx[:, j] = solve_ion_balance(elem, ne, te, coef_ion, coef_recom, nh0, coef_tcx)
+    ion_balance[:, j] = solve_ion_balance(elem, ne, te, rates_ion, rates_recom)
+    ion_balance_tcx[:, j] = solve_ion_balance(elem, ne, te, rates_ion, rates_recom, nh0, rates_tcx)
 
+
+# do the plots
 for i in range(elem.atomic_number + 1):
     try:
-        ionisation_rates = [coef_ion[i](1E19, x) for x in electron_temperatures]
+        ionisation_rates = [rates_ion[i](1E19, x) for x in electron_temperatures]
         plt.loglog(electron_temperatures, ionisation_rates, '-x', label='{0} {1}+'.format(elem.symbol, i))
     except KeyError:
         continue
@@ -110,7 +127,7 @@ plt.title("Ionisation Rates")
 plt.figure()
 for i in range(elem.atomic_number + 1):
     try:
-        recombination_rates = [coef_recom[i](1E19, x) for x in electron_temperatures]
+        recombination_rates = [rates_recom[i](1E19, x) for x in electron_temperatures]
         plt.loglog(electron_temperatures, recombination_rates, '-x', label='{0} {1}+'.format(elem.symbol, i))
     except KeyError:
         continue
@@ -122,7 +139,7 @@ plt.title("Recombination Rates")
 plt.figure()
 for i in range(elem.atomic_number + 1):
     try:
-        tcx_rates = [coef_tcx[i](1E19, x) for x in electron_temperatures]
+        tcx_rates = [rates_tcx[i](1E19, x) for x in electron_temperatures]
         plt.loglog(electron_temperatures, tcx_rates, '-x', label='{0} {1}+'.format(elem.symbol, i))
     except KeyError:
         continue
@@ -135,7 +152,7 @@ plt.figure()
 for i in range(elem.atomic_number + 1):
     pl = plt.semilogx(electron_temperatures, ion_balance[i, :], label='{0} {1}+'.format(elem.symbol, i))
     plt.semilogx(electron_temperatures, ion_balance_tcx[i, :], '--',
-                 color=pl[0].get_color(), lw = 2)
+                 color=pl[0].get_color(), lw=2)
 plt.plot([], [], "k-", label="nh0 = 0")
 plt.plot([], [], "k--", label="nh0 = 1e16 m^-3")
 plt.xlabel("Electron Temperature (eV)")
