@@ -20,14 +20,14 @@ import json
 import numpy as np
 from cherab.core.utility import RecursiveDict
 from cherab.core.atomic import Element
-from ..utility import DEFAULT_REPOSITORY_PATH, valid_ionisation, encode_transition
+from ..utility import DEFAULT_REPOSITORY_PATH, valid_charge, encode_transition
 
 """
 Utilities for managing the local rate repository - beam cx rate section.
 """
 
 
-def add_beam_cx_rate(donor_ion, donor_metastable, receiver_ion, receiver_ionisation, transition, rate, repository_path=None):
+def add_beam_cx_rate(donor_ion, donor_metastable, receiver_ion, receiver_charge, transition, rate, repository_path=None):
     """
     Adds a single beam CX rate to the repository.
 
@@ -38,7 +38,7 @@ def add_beam_cx_rate(donor_ion, donor_metastable, receiver_ion, receiver_ionisat
     :param donor_ion:
     :param donor_metastable:
     :param receiver_ion:
-    :param receiver_ionisation:
+    :param receiver_charge:
     :param rate:
     :param repository_path:
     :return:
@@ -47,7 +47,7 @@ def add_beam_cx_rate(donor_ion, donor_metastable, receiver_ion, receiver_ionisat
     update_beam_cx_rates({
         donor_ion: {
             receiver_ion: {
-                receiver_ionisation: {
+                receiver_charge: {
                     transition: {
                         donor_metastable: rate
                     }
@@ -59,7 +59,7 @@ def add_beam_cx_rate(donor_ion, donor_metastable, receiver_ion, receiver_ionisat
 
 def update_beam_cx_rates(rates, repository_path=None):
     # organisation in repository:
-    #   beam/cx/donor_ion/receiver_ion/receiver_ionisation.json
+    #   beam/cx/donor_ion/receiver_ion/receiver_charge.json
     # inside json file:
     #   transition: [list of donor_metastables with rates]
 
@@ -96,8 +96,8 @@ def update_beam_cx_rates(rates, repository_path=None):
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
     for donor, receivers in rates.items():
-        for receiver, ionisations in receivers.items():
-            for ionisation, transitions in ionisations.items():
+        for receiver, charge_states in receivers.items():
+            for charge, transitions in charge_states.items():
 
                 # sanitise and validate
                 if not isinstance(donor, Element):
@@ -106,10 +106,10 @@ def update_beam_cx_rates(rates, repository_path=None):
                 if not isinstance(receiver, Element):
                     raise TypeError('The element must be an Element object.')
 
-                if not valid_ionisation(receiver, ionisation):
-                    raise ValueError('Ionisation level is larger than the number of protons in the element.')
+                if not valid_charge(receiver, charge):
+                    raise ValueError('Charge state is larger than the number of protons in the element.')
 
-                path = os.path.join(repository_path, 'beam/cx/{}/{}/{}.json'.format(donor.symbol.lower(), receiver.symbol.lower(), ionisation))
+                path = os.path.join(repository_path, 'beam/cx/{}/{}/{}.json'.format(donor.symbol.lower(), receiver.symbol.lower(), charge))
 
                 # read in any existing rates
                 try:
@@ -132,7 +132,7 @@ def update_beam_cx_rates(rates, repository_path=None):
                         if not metastable >= 0:
                             raise ValueError('Donor metastable level cannot be less than zero.')
 
-                        data = rates[donor][receiver][ionisation][transition][metastable]
+                        data = rates[donor][receiver][charge][transition][metastable]
 
                         # sanitise/validate data
                         data['qref'] = float(data['qref'])
@@ -166,17 +166,17 @@ def update_beam_cx_rates(rates, repository_path=None):
                     json.dump(content, f, indent=2, sort_keys=True)
 
 
-def get_beam_cx_rates(donor_ion, receiver_ion, receiver_ionisation, transition, repository_path=None):
+def get_beam_cx_rates(donor_ion, receiver_ion, receiver_charge, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
-    path = os.path.join(repository_path, 'beam/cx/{}/{}/{}.json'.format(donor_ion.symbol.lower(), receiver_ion.symbol.lower(), receiver_ionisation))
+    path = os.path.join(repository_path, 'beam/cx/{}/{}/{}.json'.format(donor_ion.symbol.lower(), receiver_ion.symbol.lower(), receiver_charge))
     try:
         with open(path, 'r') as f:
             content = json.load(f)
         rates = content[encode_transition(transition)]
     except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested beam CX effective emission rates (donor={}, receiver={}, ionisation={}, transition={})'
-                           ' are not available.'.format(donor_ion.symbol, receiver_ion.symbol, receiver_ionisation, transition))
+        raise RuntimeError('Requested beam CX effective emission rates (donor={}, receiver={}, charge={}, transition={})'
+                           ' are not available.'.format(donor_ion.symbol, receiver_ion.symbol, receiver_charge, transition))
 
     # sanitise data and convert to (more useful) numpy arrays rather than lists
     for rate in rates.values():

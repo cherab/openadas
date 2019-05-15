@@ -23,10 +23,10 @@ import numpy as np
 
 from cherab.core.atomic import Element
 from cherab.core.utility import RecursiveDict
-from .utility import DEFAULT_REPOSITORY_PATH, valid_ionisation
+from .utility import DEFAULT_REPOSITORY_PATH, valid_charge
 
 
-def add_ionisation_rate(species, ionisation, rate, repository_path=None):
+def add_ionisation_rate(species, charge, rate, repository_path=None):
     """
     Adds a single ionisation rate to the repository.
 
@@ -40,7 +40,7 @@ def add_ionisation_rate(species, ionisation, rate, repository_path=None):
 
     update_ionisation_rates({
         species: {
-            ionisation: rate
+            charge: rate
         }
     }, repository_path)
 
@@ -51,7 +51,7 @@ def update_ionisation_rates(rates, repository_path=None):
 
     /ionisation/<species>.json
 
-    File contains multiple rates, indexed by ion ionisation.
+    File contains multiple rates, indexed by the ion charge state.
     """
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
@@ -67,7 +67,7 @@ def update_ionisation_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
-def add_recombination_rate(species, ionisation, rate, repository_path=None):
+def add_recombination_rate(species, charge, rate, repository_path=None):
     """
     Adds a single recombination rate to the repository.
 
@@ -81,7 +81,7 @@ def add_recombination_rate(species, ionisation, rate, repository_path=None):
 
     update_recombination_rates({
         species: {
-            ionisation: rate
+            charge: rate
         }
     }, repository_path)
 
@@ -92,7 +92,7 @@ def update_recombination_rates(rates, repository_path=None):
 
     /recombination/<species>.json
 
-    File contains multiple rates, indexed by ion ionisation.
+    File contains multiple rates, indexed by the ion charge state.
     """
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
@@ -108,6 +108,55 @@ def update_recombination_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
+def add_thermal_cx_rate(donor_element, donor_charge, receiver_element, rate, repository_path=None):
+
+    """
+    Adds a single thermal charge exchange rate to the repository.
+
+    If adding multiple rates, consider using the update_recombination_rates()
+    function instead. The update function avoids repeatedly opening and closing
+    the rate files.
+
+    :param donor_element: Element donating the electron.
+    :param donor_charge: Charge of the donating atom/ion
+    :param receiver_element: Element receiving the electron
+    :param rate: rates
+    :param repository_path:
+    :return:
+    """
+
+    rates2update = RecursiveDict()
+    rates2update[donor_element][donor_charge][receiver_element] = rate
+
+    update_thermal_cx_rates(rates2update, repository_path)
+
+
+def update_thermal_cx_rates(rates, repository_path=None):
+    """
+    Thermal charge exchange rate file structure
+
+    /thermal_cx/<donor_element>/<donor_charge>/<receiver_element>.json
+
+    File contains multiple rates, indexed by the ion charge state.
+    """
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+
+    for donor_element in rates.keys():
+        for donor_charge in rates[donor_element].keys():
+            for receiver_element, rate_data in rates[donor_element][donor_charge].items():
+
+                # sanitise and validate arguments
+                if not isinstance(receiver_element, Element):
+                    raise TypeError('The receiver_element must be an Element object.')
+
+                rate_path = 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(),
+                                                                 donor_charge, receiver_element.symbol.lower())
+                path = os.path.join(repository_path, rate_path)
+
+                _update_and_write_adf11(receiver_element, rate_data, path)
+
+
 def _update_and_write_adf11(species, rate_data, path):
 
         # read in any existing rates
@@ -117,10 +166,10 @@ def _update_and_write_adf11(species, rate_data, path):
         except FileNotFoundError:
             content = RecursiveDict()
 
-        for ionisation, rates in rate_data.items():
+        for charge, rates in rate_data.items():
 
-            if not valid_ionisation(species, ionisation):
-                raise ValueError('Ionisation level is larger than the number of protons in the specified species.')
+            if not valid_charge(species, charge):
+                raise ValueError('Charge state is larger than the number of protons in the specified species.')
 
             # sanitise and validate rate data
             te = np.array(rates['te'], np.float64)
@@ -137,7 +186,7 @@ def _update_and_write_adf11(species, rate_data, path):
                 raise ValueError('Electron temperature, density and rate data arrays have inconsistent sizes.')
 
             # update file content with new rate
-            content[ionisation] = {
+            content[charge] = {
                 'te': te.tolist(),
                 'ne': ne.tolist(),
                 'rate': rate_table.tolist(),
@@ -153,7 +202,7 @@ def _update_and_write_adf11(species, rate_data, path):
                 json.dump(content, f, indent=2, sort_keys=True)
 
 
-def get_ionisation_rate(element, ionisation, repository_path=None):
+def get_ionisation_rate(element, charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
@@ -161,12 +210,10 @@ def get_ionisation_rate(element, ionisation, repository_path=None):
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-        d = content[str(ionisation)]
+        d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        print()
-        print(path)
-        raise RuntimeError('Requested ionisation rate (element={}, ionisation={})'
-                           ' is not available.'.format(element.symbol, ionisation))
+        raise RuntimeError('Requested ionisation rate (element={}, charge={})'
+                           ' is not available.'.format(element.symbol, charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
@@ -176,7 +223,7 @@ def get_ionisation_rate(element, ionisation, repository_path=None):
     return d
 
 
-def get_recombination_rate(element, ionisation, repository_path=None):
+def get_recombination_rate(element, charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
@@ -184,10 +231,34 @@ def get_recombination_rate(element, ionisation, repository_path=None):
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-        d = content[str(ionisation)]
+        d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested recombination rate (element={}, ionisation={})'
-                           ' is not available.'.format(element.symbol, ionisation))
+        raise RuntimeError('Requested recombination rate (element={}, charge={})'
+                           ' is not available.'.format(element.symbol, charge))
+
+    # convert to numpy arrays
+    d['ne'] = np.array(d['ne'], np.float64)
+    d['te'] = np.array(d['te'], np.float64)
+    d['rate'] = np.array(d['rate'], np.float64)
+
+    return d
+
+
+def get_thermal_cx_rate(donor_element, donor_charge, receiver_element, receiver_charge, repository_path=None):
+
+    repository_path = repository_path or DEFAULT_REPOSITORY_PATH
+
+    rate_path = 'thermal_cx/{0}/{1}/{2}.json'.format(donor_element.symbol.lower(), donor_charge,
+                                                     receiver_element.symbol.lower())
+    path = os.path.join(repository_path, rate_path)
+    try:
+        with open(path, 'r') as f:
+            content = json.load(f)
+        d = content[str(receiver_charge)]
+    except (FileNotFoundError, KeyError):
+        raise RuntimeError('Requested thermal charge-exchange rate (donor={}, donor charge={}, receiver={})'
+                           ' is not available.'
+                           ''.format(donor_element.symbol, donor_charge, receiver_element.symbol, receiver_charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)

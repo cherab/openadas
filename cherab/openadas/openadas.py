@@ -44,25 +44,25 @@ class OpenADAS(AtomicData):
     def data_path(self):
         return self._data_path
 
-    def wavelength(self, ion, ionisation, transition):
+    def wavelength(self, ion, charge, transition):
         """
         :param ion: Element object defining the ion type.
-        :param ionisation: Ionisation level of the ion.
+        :param charge: Charge state of the ion.
         :param transition: Tuple containing (initial level, final level)
         :return: Wavelength in nanometers.
         """
 
         if isinstance(ion, Isotope):
             ion = ion.element
-        return repository.get_wavelength(ion, ionisation, transition)
+        return repository.get_wavelength(ion, charge, transition)
 
-    def ionisation_rate(self, ion, ionisation):
+    def ionisation_rate(self, ion, charge):
 
         if isinstance(ion, Isotope):
             ion = ion.element
 
         try:
-            data = repository.get_ionisation_rate(ion, ionisation)
+            data = repository.get_ionisation_rate(ion, charge)
 
         except RuntimeError:
             if self._missing_rates_return_null:
@@ -71,13 +71,13 @@ class OpenADAS(AtomicData):
 
         return IonisationRate(data, extrapolate=self._permit_extrapolation)
 
-    def recombination_rate(self, ion, ionisation):
+    def recombination_rate(self, ion, charge):
 
         if isinstance(ion, Isotope):
             ion = ion.element
 
         try:
-            data = repository.get_recombination_rate(ion, ionisation)
+            data = repository.get_recombination_rate(ion, charge)
 
         except RuntimeError:
             if self._missing_rates_return_null:
@@ -86,12 +86,31 @@ class OpenADAS(AtomicData):
 
         return RecombinationRate(data, extrapolate=self._permit_extrapolation)
 
-    def beam_cx_pec(self, donor_ion, receiver_ion, receiver_ionisation, transition):
+    def thermal_cx_rate(self, donor_element, donor_charge, receiver_element, receiver_charge):
+
+        if isinstance(donor_element, Isotope):
+            donor_element = donor_element.element
+
+        if isinstance(receiver_element, Isotope):
+            receiver_element = receiver_element.element
+
+        try:
+            data = repository.get_thermal_cx_rate(donor_element, donor_charge,
+                                                  receiver_element, receiver_charge)
+
+        except RuntimeError:
+            if self._missing_rates_return_null:
+                return NullThermalCXRate()
+            raise
+
+        return ThermalCXRate(data, extrapolate=self._permit_extrapolation)
+
+    def beam_cx_pec(self, donor_ion, receiver_ion, receiver_charge, transition):
         """
 
         :param donor_ion:
         :param receiver_ion:
-        :param receiver_ionisation:
+        :param receiver_charge:
         :param transition:
         :return:
         """
@@ -105,8 +124,8 @@ class OpenADAS(AtomicData):
 
         try:
             # read data
-            wavelength = repository.get_wavelength(receiver_ion, receiver_ionisation - 1, transition)
-            data = repository.get_beam_cx_rates(donor_ion, receiver_ion, receiver_ionisation, transition)
+            wavelength = repository.get_wavelength(receiver_ion, receiver_charge - 1, transition)
+            data = repository.get_beam_cx_rates(donor_ion, receiver_ion, receiver_charge, transition)
 
         except RuntimeError:
             if self._missing_rates_return_null:
@@ -119,12 +138,12 @@ class OpenADAS(AtomicData):
             rates.append(BeamCXPEC(donor_metastable, wavelength, rate_data, extrapolate=self._permit_extrapolation))
         return rates
 
-    def beam_stopping_rate(self, beam_ion, plasma_ion, ionisation):
+    def beam_stopping_rate(self, beam_ion, plasma_ion, charge):
         """
 
         :param beam_ion:
         :param plasma_ion:
-        :param ionisation:
+        :param charge:
         :return:
         """
 
@@ -137,7 +156,7 @@ class OpenADAS(AtomicData):
 
         try:
             # locate data file
-            data = repository.get_beam_stopping_rate(beam_ion, plasma_ion, ionisation)
+            data = repository.get_beam_stopping_rate(beam_ion, plasma_ion, charge)
 
         except RuntimeError:
             if self._missing_rates_return_null:
@@ -147,13 +166,13 @@ class OpenADAS(AtomicData):
         # load and interpolate data
         return BeamStoppingRate(data, extrapolate=self._permit_extrapolation)
 
-    def beam_population_rate(self, beam_ion, metastable, plasma_ion, ionisation):
+    def beam_population_rate(self, beam_ion, metastable, plasma_ion, charge):
         """
 
         :param beam_ion:
         :param metastable:
         :param plasma_ion:
-        :param ionisation:
+        :param charge:
         :return:
         """
 
@@ -166,7 +185,7 @@ class OpenADAS(AtomicData):
 
         try:
             # locate data file
-            data = repository.get_beam_population_rate(beam_ion, metastable, plasma_ion, ionisation)
+            data = repository.get_beam_population_rate(beam_ion, metastable, plasma_ion, charge)
 
         except RuntimeError:
             if self._missing_rates_return_null:
@@ -176,12 +195,12 @@ class OpenADAS(AtomicData):
         # load and interpolate data
         return BeamPopulationRate(data, extrapolate=self._permit_extrapolation)
 
-    def beam_emission_pec(self, beam_ion, plasma_ion, ionisation, transition):
+    def beam_emission_pec(self, beam_ion, plasma_ion, charge, transition):
         """
 
         :param beam_ion:
         :param plasma_ion:
-        :param ionisation:
+        :param charge:
         :param transition:
         :return:
         """
@@ -195,8 +214,8 @@ class OpenADAS(AtomicData):
 
         try:
             # locate data file
-            data = repository.get_beam_emission_rate(beam_ion, plasma_ion, ionisation, transition)
-            wavelength = repository.get_wavelength(plasma_ion, ionisation - 1, transition)
+            data = repository.get_beam_emission_rate(beam_ion, plasma_ion, charge, transition)
+            wavelength = repository.get_wavelength(plasma_ion, charge - 1, transition)
 
         except RuntimeError:
             if self._missing_rates_return_null:
@@ -206,11 +225,11 @@ class OpenADAS(AtomicData):
         # load and interpolate data
         return BeamEmissionPEC(data, wavelength, extrapolate=self._permit_extrapolation)
 
-    def impact_excitation_pec(self, ion, ionisation, transition):
+    def impact_excitation_pec(self, ion, charge, transition):
         """
 
         :param ion:
-        :param ionisation:
+        :param charge:
         :param transition:
         :return:
         """
@@ -219,8 +238,8 @@ class OpenADAS(AtomicData):
             ion = ion.element
 
         try:
-            wavelength = repository.get_wavelength(ion, ionisation, transition)
-            data = repository.get_pec_excitation_rate(ion, ionisation, transition)
+            wavelength = repository.get_wavelength(ion, charge, transition)
+            data = repository.get_pec_excitation_rate(ion, charge, transition)
 
         except RuntimeError:
             if self._missing_rates_return_null:
@@ -229,11 +248,11 @@ class OpenADAS(AtomicData):
 
         return ImpactExcitationPEC(wavelength, data, extrapolate=self._permit_extrapolation)
 
-    def recombination_pec(self, ion, ionisation, transition):
+    def recombination_pec(self, ion, charge, transition):
         """
 
         :param ion:
-        :param ionisation:
+        :param charge:
         :param transition:
         :return:
         """
@@ -242,8 +261,8 @@ class OpenADAS(AtomicData):
             ion = ion.element
 
         try:
-            wavelength = repository.get_wavelength(ion, ionisation, transition)
-            data = repository.get_pec_recombination_rate(ion, ionisation, transition)
+            wavelength = repository.get_wavelength(ion, charge, transition)
+            data = repository.get_pec_recombination_rate(ion, charge, transition)
 
         except (FileNotFoundError, KeyError):
             if self._missing_rates_return_null:
@@ -252,49 +271,47 @@ class OpenADAS(AtomicData):
 
         return RecombinationPEC(wavelength, data, extrapolate=self._permit_extrapolation)
 
-    def line_radiated_power_rate(self, ion, ionisation):
+    def line_radiated_power_rate(self, ion, charge):
 
         if isinstance(ion, Isotope):
             ion = ion.element
 
         try:
-            data = repository.get_line_radiated_power_rate(ion, ionisation)
+            data = repository.get_line_radiated_power_rate(ion, charge)
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullIonisationRate()
+                return NullLineRadiationPower(ion, charge)
             raise
 
-        return LineRadiationPower(ion, ionisation, data, extrapolate=self._permit_extrapolation)
+        return LineRadiationPower(ion, charge, data, extrapolate=self._permit_extrapolation)
 
-    def continuum_radiated_power_rate(self, ion, ionisation):
+    def continuum_radiated_power_rate(self, ion, charge):
 
         if isinstance(ion, Isotope):
             ion = ion.element
 
         try:
-            data = repository.get_continuum_radiated_power_rate(ion, ionisation)
+            data = repository.get_continuum_radiated_power_rate(ion, charge)
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullIonisationRate()
+                return NullContinuumPower(ion, charge)
             raise
 
-        return ContinuumPower(ion, ionisation, data, extrapolate=self._permit_extrapolation)
+        return ContinuumPower(ion, charge, data, extrapolate=self._permit_extrapolation)
 
-    def cx_radiated_power_rate(self, ion, ionisation):
+    def cx_radiated_power_rate(self, ion, charge):
 
         if isinstance(ion, Isotope):
             ion = ion.element
 
         try:
-            data = repository.get_cx_radiated_power_rate(ion, ionisation)
+            data = repository.get_cx_radiated_power_rate(ion, charge)
 
         except RuntimeError:
             if self._missing_rates_return_null:
-                return NullIonisationRate()
+                return NullCXRadiationPower(ion, charge)
             raise
 
-        return CXRadiationPower(ion, ionisation, data, extrapolate=self._permit_extrapolation)
-
-
+        return CXRadiationPower(ion, charge, data, extrapolate=self._permit_extrapolation)

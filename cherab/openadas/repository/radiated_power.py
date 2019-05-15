@@ -24,10 +24,10 @@ import numpy as np
 
 from cherab.core.atomic import Element
 from cherab.core.utility import RecursiveDict
-from .utility import DEFAULT_REPOSITORY_PATH, valid_ionisation
+from .utility import DEFAULT_REPOSITORY_PATH, valid_charge
 
 
-def add_line_power_rate(species, ionisation, rate, repository_path=None):
+def add_line_power_rate(species, charge, rate, repository_path=None):
     """
     Adds a single LineRadiationPower rate to the repository.
 
@@ -40,7 +40,7 @@ def add_line_power_rate(species, ionisation, rate, repository_path=None):
 
     update_line_power_rates({
         species: {
-            ionisation: rate
+            charge: rate
         }
     }, repository_path)
 
@@ -53,7 +53,7 @@ def update_line_power_rates(rates, repository_path=None):
 
     /radiated_power/line/<species>.json
 
-    File contains multiple rates, indexed by ion ionisation.
+    File contains multiple rates, indexed by the ion's charge state.
     """
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
@@ -69,7 +69,7 @@ def update_line_power_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
-def add_continuum_power_rate(species, ionisation, rate, repository_path=None):
+def add_continuum_power_rate(species, charge, rate, repository_path=None):
     """
     Adds a single ContinuumPower rate to the repository.
 
@@ -82,7 +82,7 @@ def add_continuum_power_rate(species, ionisation, rate, repository_path=None):
 
     update_line_power_rates({
         species: {
-            ionisation: rate
+            charge: rate
         }
     }, repository_path)
 
@@ -95,7 +95,7 @@ def update_continuum_power_rates(rates, repository_path=None):
 
     /radiated_power/continuum/<species>.json
 
-    File contains multiple rates, indexed by ion ionisation.
+    File contains multiple rates, indexed by ion's charge state.
     """
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
@@ -111,7 +111,7 @@ def update_continuum_power_rates(rates, repository_path=None):
         _update_and_write_adf11(species, rate_data, path)
 
 
-def add_cx_power_rate(species, ionisation, rate, repository_path=None):
+def add_cx_power_rate(species, charge, rate, repository_path=None):
     """
     Adds a single CXRadiationPower rate to the repository.
 
@@ -124,7 +124,7 @@ def add_cx_power_rate(species, ionisation, rate, repository_path=None):
 
     update_line_power_rates({
         species: {
-            ionisation: rate
+            charge: rate
         }
     }, repository_path)
 
@@ -137,7 +137,7 @@ def update_cx_power_rates(rates, repository_path=None):
 
     /radiated_power/cx/<species>.json
 
-    File contains multiple rates, indexed by ion ionisation.
+    File contains multiple rates, indexed by ion's charge state.
     """
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
@@ -162,10 +162,10 @@ def _update_and_write_adf11(species, rate_data, path):
     except FileNotFoundError:
         content = RecursiveDict()
 
-    for ionisation, rates in rate_data.items():
+    for charge, rates in rate_data.items():
 
-        if not valid_ionisation(species, ionisation):
-            raise ValueError('Ionisation level is larger than the number of protons in the specified species.')
+        if not valid_charge(species, charge):
+            raise ValueError('The charge state is larger than the number of protons in the specified species.')
 
         # sanitise and validate rate data
         te = np.array(rates['te'], np.float64)
@@ -182,7 +182,7 @@ def _update_and_write_adf11(species, rate_data, path):
             raise ValueError('Electron temperature, density and rate data arrays have inconsistent sizes.')
 
         # update file content with new rate
-        content[ionisation] = {
+        content[charge] = {
             'te': te.tolist(),
             'ne': ne.tolist(),
             'rate': rate_table.tolist(),
@@ -198,7 +198,7 @@ def _update_and_write_adf11(species, rate_data, path):
             json.dump(content, f, indent=2, sort_keys=True)
 
 
-def get_line_radiated_power_rate(element, ionisation, repository_path=None):
+def get_line_radiated_power_rate(element, charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
@@ -206,12 +206,10 @@ def get_line_radiated_power_rate(element, ionisation, repository_path=None):
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-        d = content[str(ionisation)]
+        d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        print()
-        print(path)
-        raise RuntimeError('Requested radiated power rate (element={}, ionisation={})'
-                           ' is not available.'.format(element.symbol, ionisation))
+        raise RuntimeError('Requested radiated power rate (element={}, charge={})'
+                           ' is not available.'.format(element.symbol, charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
@@ -221,7 +219,7 @@ def get_line_radiated_power_rate(element, ionisation, repository_path=None):
     return d
 
 
-def get_continuum_radiated_power_rate(element, ionisation, repository_path=None):
+def get_continuum_radiated_power_rate(element, charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
@@ -229,12 +227,10 @@ def get_continuum_radiated_power_rate(element, ionisation, repository_path=None)
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-        d = content[str(ionisation)]
+        d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        print()
-        print(path)
-        raise RuntimeError('Requested radiated power rate (element={}, ionisation={})'
-                           ' is not available.'.format(element.symbol, ionisation))
+        raise RuntimeError('Requested radiated power rate (element={}, charge={})'
+                           ' is not available.'.format(element.symbol, charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)
@@ -244,7 +240,7 @@ def get_continuum_radiated_power_rate(element, ionisation, repository_path=None)
     return d
 
 
-def get_cx_radiated_power_rate(element, ionisation, repository_path=None):
+def get_cx_radiated_power_rate(element, charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
@@ -252,12 +248,10 @@ def get_cx_radiated_power_rate(element, ionisation, repository_path=None):
     try:
         with open(path, 'r') as f:
             content = json.load(f)
-        d = content[str(ionisation)]
+        d = content[str(charge)]
     except (FileNotFoundError, KeyError):
-        print()
-        print(path)
-        raise RuntimeError('Requested radiated power rate (element={}, ionisation={})'
-                           ' is not available.'.format(element.symbol, ionisation))
+        raise RuntimeError('Requested radiated power rate (element={}, charge={})'
+                           ' is not available.'.format(element.symbol, charge))
 
     # convert to numpy arrays
     d['ne'] = np.array(d['ne'], np.float64)

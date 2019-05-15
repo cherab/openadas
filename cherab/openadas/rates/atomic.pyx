@@ -17,6 +17,8 @@
 # See the Licence for the specific language governing permissions and limitations
 # under the Licence.
 
+import numpy as np
+
 
 cdef class IonisationRate(CoreIonisationRate):
 
@@ -31,7 +33,7 @@ cdef class IonisationRate(CoreIonisationRate):
         # unpack
         ne = data['ne']
         te = data['te']
-        rate =  data['rate']
+        rate =  np.log10(data['rate'])
 
         # store limits of data
         self.density_range = ne.min(), ne.max()
@@ -44,8 +46,8 @@ cdef class IonisationRate(CoreIonisationRate):
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
 
-        # prevent -ve values (possible if extrapolation enabled)
-        return max(0, self._rate.evaluate(density, temperature))
+        # calculate rate and convert from log10 space to linear space
+        return 10 ** self._rate.evaluate(density, temperature)
 
 
 cdef class NullIonisationRate(CoreIonisationRate):
@@ -71,7 +73,7 @@ cdef class RecombinationRate(CoreRecombinationRate):
         # unpack
         ne = data['ne']
         te = data['te']
-        rate =  data['rate']
+        rate =  np.log10(data['rate'])
 
         # store limits of data
         self.density_range = ne.min(), ne.max()
@@ -85,11 +87,51 @@ cdef class RecombinationRate(CoreRecombinationRate):
 
     cpdef double evaluate(self, double density, double temperature) except? -1e999:
 
-        # prevent -ve values (possible if extrapolation enabled)
-        return max(0, self._rate.evaluate(density, temperature))
+        # calculate rate and convert from log10 space to linear space
+        return 10 ** self._rate.evaluate(density, temperature)
 
 
 cdef class NullRecombinationRate(CoreRecombinationRate):
+    """
+    A PEC rate that always returns zero.
+    Needed for use cases where the required atomic data is missing.
+    """
+
+    cpdef double evaluate(self, double density, double temperature) except? -1e999:
+        return 0.0
+
+
+cdef class ThermalCXRate(CoreThermalCXRate):
+
+    def __init__(self, dict data, extrapolate=False):
+        """
+        :param data: Dictionary containing rate data.
+        :param extrapolate: Enable extrapolation (default=False).
+        """
+
+        self.raw_data = data
+
+        # unpack
+        ne = data['ne']
+        te = data['te']
+        rate =  np.log10(data['rate'])
+
+        # store limits of data
+        self.density_range = ne.min(), ne.max()
+        self.temperature_range = te.min(), te.max()
+
+        # interpolate rate
+        self._rate = Interpolate2DCubic(
+            ne, te, rate, extrapolate=extrapolate, extrapolation_type="quadratic"
+        )
+
+    cpdef double evaluate(self, double density, double temperature) except? -1e999:
+
+        # calculate rate and convert from log10 space to linear space
+        return 10 ** self._rate.evaluate(density, temperature)
+
+
+cdef class NullThermalCXRate(CoreThermalCXRate):
     """
     A PEC rate that always returns zero.
     Needed for use cases where the required atomic data is missing.

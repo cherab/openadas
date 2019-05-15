@@ -20,21 +20,21 @@ import os
 import json
 import numpy as np
 from cherab.core.atomic import Element
-from ..utility import DEFAULT_REPOSITORY_PATH, valid_ionisation
+from ..utility import DEFAULT_REPOSITORY_PATH, valid_charge
 
 """
 Utilities for managing the local rate repository - beam population section.
 """
 
 
-def add_beam_population_rate(beam_species, beam_metastable, target_ion, target_ionisation, rate, repository_path=None):
+def add_beam_population_rate(beam_species, beam_metastable, target_ion, target_charge, rate, repository_path=None):
     """
     Adds a single beam population rate to the repository.
 
     :param beam_species:
     :param beam_metastable:
     :param target_ion:
-    :param target_ionisation:
+    :param target_charge:
     :param rate:
     :return:
     """
@@ -51,8 +51,8 @@ def add_beam_population_rate(beam_species, beam_metastable, target_ion, target_i
     if not isinstance(target_ion, Element):
         raise TypeError('The beam_species must be an Element object.')
 
-    if not valid_ionisation(target_ion, target_ionisation):
-        raise ValueError('Ionisation level is larger than the number of protons in the target ion.')
+    if not valid_charge(target_ion, target_charge):
+        raise ValueError('Charge state is larger than the number of protons in the target ion.')
 
     # sanitise and validate rate data
     e = np.array(rate['e'], np.float64)
@@ -88,7 +88,7 @@ def add_beam_population_rate(beam_species, beam_metastable, target_ion, target_i
     rate['tref'] = float(rate['tref'])
     rate['sref'] = float(rate['sref'])
 
-    path = os.path.join(repository_path, 'beam/population/{}/{}/{}/{}.json'.format(beam_species.symbol.lower(), beam_metastable, target_ion.symbol.lower(), target_ionisation))
+    path = os.path.join(repository_path, 'beam/population/{}/{}/{}/{}.json'.format(beam_species.symbol.lower(), beam_metastable, target_ion.symbol.lower(), target_charge))
 
     # create directory structure if missing
     directory = os.path.dirname(path)
@@ -104,28 +104,28 @@ def update_beam_population_rates(rates, repository_path=None):
     """
     Beam population rate file structure
 
-    /beam/population/<beam species>/<beam metastable>/<target ion>/<target_ionisation>.json
+    /beam/population/<beam species>/<beam metastable>/<target ion>/<target_charge>.json
 
     Each json file contains a single rate, so it can simply be replaced.
     """
 
     for beam_species, beam_metastables in rates.items():
         for beam_metastable, target_ions in beam_metastables.items():
-            for target_ion, target_ionisations in target_ions.items():
-                for target_ionisation, rate in target_ionisations.items():
-                    add_beam_population_rate(beam_species, beam_metastable, target_ion, target_ionisation, rate, repository_path)
+            for target_ion, target_charge_states in target_ions.items():
+                for target_charge, rate in target_charge_states.items():
+                    add_beam_population_rate(beam_species, beam_metastable, target_ion, target_charge, rate, repository_path)
 
 
-def get_beam_population_rate(beam_species, beam_metastable, target_ion, target_ionisation, repository_path=None):
+def get_beam_population_rate(beam_species, beam_metastable, target_ion, target_charge, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
-    path = os.path.join(repository_path, 'beam/population/{}/{}/{}/{}.json'.format(beam_species.symbol.lower(), beam_metastable, target_ion.symbol.lower(), target_ionisation))
+    path = os.path.join(repository_path, 'beam/population/{}/{}/{}/{}.json'.format(beam_species.symbol.lower(), beam_metastable, target_ion.symbol.lower(), target_charge))
     try:
         with open(path, 'r') as f:
             rate = json.load(f)
     except FileNotFoundError:
-        raise RuntimeError('Requested beam population rate (beam species={}, beam metastable={}, target ion={}, target ionisation={})'
-                           ' is not available.'.format(beam_species.symbol, beam_metastable, target_ion.symbol, target_ionisation))
+        raise RuntimeError('Requested beam population rate (beam species={}, beam metastable={}, target ion={}, target charge={})'
+                           ' is not available.'.format(beam_species.symbol, beam_metastable, target_ion.symbol, target_charge))
 
     # convert lists to numpy arrays
     rate['e'] = np.array(rate['e'], np.float64)

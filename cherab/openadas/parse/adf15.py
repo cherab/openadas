@@ -41,12 +41,12 @@ _L_LOOKUP = {
 }
 
 
-def parse_adf15(element, ionisation, adf_file_path):
+def parse_adf15(element, charge, adf_file_path, header_format=None):
     """
     Opens and parses ADAS ADF15 data files.
 
     :param element: Element described by ADF file.
-    :param ionisation: Ionisation described by ADF file.
+    :param charge: Charge state described by ADF file.
     :param adf_file_path: Path to ADF15 file from ADAS root.
     :return: Dictionary containing rates.
     """
@@ -54,7 +54,7 @@ def parse_adf15(element, ionisation, adf_file_path):
     if not isinstance(element, Element):
         raise TypeError('The element must be an Element object.')
 
-    ionisation = int(ionisation)
+    charge = int(charge)
 
     with open(adf_file_path, "r") as file:
 
@@ -64,22 +64,28 @@ def parse_adf15(element, ionisation, adf_file_path):
             raise ValueError('The specified path does not point to a valid ADF15 file.')
 
         # scrape transition information and wavelength
-        config = _scrape_metadata(file, element, ionisation)
+        # use simple electron configuration structure for hydrogen-like ions
+        if header_format == 'hydrogen' or element == hydrogen:
+            config = _scrape_metadata_hydrogen(file, element, charge)
+        elif header_format == 'hydrogen-like' or element.atomic_number - charge == 1:
+            config = _scrape_metadata_hydrogen_like(file, element, charge)
+        else:
+            config = _scrape_metadata_full(file, element, charge)
 
         # process rate data
         rates = RecursiveDict()
         for cls in ('excitation', 'recombination', 'thermalcx'):
-            for element, ionisations in config[cls].items():
-                for ionisation, transitions in ionisations.items():
+            for element, charge_states in config[cls].items():
+                for charge, transitions in charge_states.items():
                     for transition in transitions.keys():
-                        block_num = config[cls][element][ionisation][transition]
-                        rates[cls][element][ionisation][transition] = _extract_rate(file, block_num)
+                        block_num = config[cls][element][charge][transition]
+                        rates[cls][element][charge][transition] = _extract_rate(file, block_num)
 
     wavelengths = config['wavelength']
     return rates, wavelengths
 
 
-def _scrape_metadata(file, element, ionisation):
+def _scrape_metadata_hydrogen(file, element, charge):
     """
     Scrapes transition and block information from the comments.
     """
@@ -90,126 +96,145 @@ def _scrape_metadata(file, element, ionisation):
     file.seek(0)
     lines = file.readlines()
 
-    # Use simple electron configuration structure for hydrogen
-    if element == hydrogen:
+    pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
+    while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
+        lines.pop(0)
+    index_lines = lines
 
-        pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
-        while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
-            lines.pop(0)
-        index_lines = lines
+    for i in range(len(index_lines)):
 
-        for i in range(len(index_lines)):
+        pec_hydrogen_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*N=\s*([0-9]*) - N=\s*([0-9]*)\s*([A-Z]*)'
+        match = re.match(pec_hydrogen_transition_match, index_lines[i], re.IGNORECASE)
+        if not match:
+            continue
 
-            pec_hydrogen_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*N=\s*([0-9]*) - N=\s*([0-9]*)\s*([A-Z]*)'
-            match = re.match(pec_hydrogen_transition_match, index_lines[i], re.IGNORECASE)
-            if not match:
-                continue
+        block_num = int(match.groups()[0])
+        wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
+        upper_level = int(match.groups()[2])
+        lower_level = int(match.groups()[3])
+        rate_type_adas = match.groups()[4]
+        if rate_type_adas == 'EXCIT':
+            rate_type = 'excitation'
+        elif rate_type_adas == 'RECOM':
+            rate_type = 'recombination'
+        elif rate_type_adas == 'CHEXC':
+            rate_type = 'cx_thermal'
+        else:
+            raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
 
-            block_num = int(match.groups()[0])
-            wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
-            upper_level = int(match.groups()[2])
-            lower_level = int(match.groups()[3])
-            rate_type_adas = match.groups()[4]
-            if rate_type_adas == 'EXCIT':
-                rate_type = 'excitation'
-            elif rate_type_adas == 'RECOM':
-                rate_type = 'recombination'
-            elif rate_type_adas == 'CHEXC':
-                rate_type = 'cx_thermal'
-            else:
-                raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
+        config[rate_type][element][charge][(upper_level, lower_level)] = block_num
+        config["wavelength"][element][charge][(upper_level, lower_level)] = wavelength
 
-            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
-            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+    return config
 
-    # Use simple electron configuration structure for hydrogen-like ions
-    elif element.atomic_number - ionisation == 1:
 
-        pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
-        while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
-            lines.pop(0)
-        index_lines = lines
+def _scrape_metadata_hydrogen_like(file, element, charge):
+    """
+    Scrapes transition and block information from the comments.
+    """
 
-        for i in range(len(index_lines)):
+    config = RecursiveDict()
 
-            pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
-            match = re.match(pec_full_transition_match, index_lines[i], re.IGNORECASE)
-            if not match:
-                continue
+    # start parsing from the beginning
+    file.seek(0)
+    lines = file.readlines()
 
-            block_num = int(match.groups()[0])
-            wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
-            upper_level = int(match.groups()[2])
-            lower_level = int(match.groups()[3])
-            rate_type_adas = match.groups()[4]
-            if rate_type_adas == 'EXCIT':
-                rate_type = 'excitation'
-            elif rate_type_adas == 'RECOM':
-                rate_type = 'recombination'
-            elif rate_type_adas == 'CHEXC':
-                rate_type = 'cx_thermal'
-            else:
-                raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
+    pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
+    while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
+        lines.pop(0)
+    index_lines = lines
 
-            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
-            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+    for i in range(len(index_lines)):
 
-    # Use full electron configuration structure for anything else
-    else:
+        pec_full_transition_match = '^C\s*([0-9]*)\.\s*([0-9]*\.[0-9]*)\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
+        match = re.match(pec_full_transition_match, index_lines[i], re.IGNORECASE)
+        if not match:
+            continue
 
-        configuration_lines = []
-        configuration_dict = {}
+        block_num = int(match.groups()[0])
+        wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
+        upper_level = int(match.groups()[2])
+        lower_level = int(match.groups()[3])
+        rate_type_adas = match.groups()[4]
+        if rate_type_adas == 'EXCIT':
+            rate_type = 'excitation'
+        elif rate_type_adas == 'RECOM':
+            rate_type = 'recombination'
+        elif rate_type_adas == 'CHEXC':
+            rate_type = 'cx_thermal'
+        else:
+            raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
 
-        configuration_header_match = '^C\s*Configuration\s*\(2S\+1\)L\(w-1/2\)\s*Energy \(cm\*\*-1\)$'
-        while not re.match(configuration_header_match, lines[0], re.IGNORECASE):
-            lines.pop(0)
-        pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
-        while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
-            configuration_lines.append(lines[0])
-            lines.pop(0)
-        index_lines = lines
+        config[rate_type][element][charge][(upper_level, lower_level)] = block_num
+        config["wavelength"][element][charge][(upper_level, lower_level)] = wavelength
 
-        for i in range(len(configuration_lines)):
+    return config
 
-            configuration_string_match = "^C\s*([0-9]*)\s*((?:[0-9][SPDFG][0-9]\s)*)\s*\(([0-9]*\.?[0-9]*)\)([0-9]*)\(\s*([0-9]*\.?[0-9]*)\)"
-            match = re.match(configuration_string_match, configuration_lines[i], re.IGNORECASE)
-            if not match:
-                continue
 
-            config_id = int(match.groups()[0])
-            electron_configuration = match.groups()[1].rstrip().lower()
-            spin_multiplicity = match.groups()[2]  # (2S+1)
-            total_orbital_quantum_number = _L_LOOKUP[int(match.groups()[3])]  # L
-            total_angular_momentum_quantum_number = match.groups()[4]  # J
+def _scrape_metadata_full(file, element, charge):
+    """
+    Scrapes transition and block information from the comments.
+    """
 
-            configuration_dict[config_id] = (electron_configuration + " " + spin_multiplicity +
-                                             total_orbital_quantum_number + total_angular_momentum_quantum_number)
+    config = RecursiveDict()
 
-        for i in range(len(index_lines)):
+    # start parsing from the beginning
+    file.seek(0)
+    lines = file.readlines()
 
-            pec_full_transition_match = '^C\s*([0-9]*)\.?\s*([0-9]*\.[0-9]*)\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
-            match = re.match(pec_full_transition_match, index_lines[i], re.IGNORECASE)
-            if not match:
-                continue
+    configuration_lines = []
+    configuration_dict = {}
 
-            block_num = int(match.groups()[0])
-            wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
-            upper_level_id = int(match.groups()[2])
-            upper_level = configuration_dict[upper_level_id]
-            lower_level_id = int(match.groups()[3])
-            lower_level = configuration_dict[lower_level_id]
-            rate_type_adas = match.groups()[4]
-            if rate_type_adas == 'EXCIT':
-                rate_type = 'excitation'
-            elif rate_type_adas == 'RECOM':
-                rate_type = 'recombination'
-            elif rate_type_adas == 'CHEXC':
-                rate_type = 'cx_thermal'
-            else:
-                raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
+    configuration_header_match = '^C\s*Configuration\s*\(2S\+1\)L\(w-1/2\)\s*Energy \(cm\*\*-1\)$'
+    while not re.match(configuration_header_match, lines[0], re.IGNORECASE):
+        lines.pop(0)
+    pec_index_header_match = '^C\s*ISEL\s*WAVELENGTH\s*TRANSITION\s*TYPE'
+    while not re.match(pec_index_header_match, lines[0], re.IGNORECASE):
+        configuration_lines.append(lines[0])
+        lines.pop(0)
+    index_lines = lines
 
-            config[rate_type][element][ionisation][(upper_level, lower_level)] = block_num
-            config["wavelength"][element][ionisation][(upper_level, lower_level)] = wavelength
+    for i in range(len(configuration_lines)):
+
+        configuration_string_match = "^C\s*([0-9]*)\s*((?:[0-9][SPDFG][0-9]\s)*)\s*\(([0-9]*\.?[0-9]*)\)([0-9]*)\(\s*([0-9]*\.?[0-9]*)\)"
+        match = re.match(configuration_string_match, configuration_lines[i], re.IGNORECASE)
+        if not match:
+            continue
+
+        config_id = int(match.groups()[0])
+        electron_configuration = match.groups()[1].rstrip().lower()
+        spin_multiplicity = match.groups()[2]  # (2S+1)
+        total_orbital_quantum_number = _L_LOOKUP[int(match.groups()[3])]  # L
+        total_angular_momentum_quantum_number = match.groups()[4]  # J
+
+        configuration_dict[config_id] = (electron_configuration + " " + spin_multiplicity +
+                                         total_orbital_quantum_number + total_angular_momentum_quantum_number)
+
+    for i in range(len(index_lines)):
+
+        pec_full_transition_match = '^C\s*([0-9]*)\.?\s*([0-9]*\.[0-9]*)\s*([0-9]*)[\(\)\.0-9\s]*-\s*([0-9]*)[\(\)\.0-9\s]*([A-Z]*)'
+        match = re.match(pec_full_transition_match, index_lines[i], re.IGNORECASE)
+        if not match:
+            continue
+
+        block_num = int(match.groups()[0])
+        wavelength = float(match.groups()[1]) / 10  # convert Angstroms to nm
+        upper_level_id = int(match.groups()[2])
+        upper_level = configuration_dict[upper_level_id]
+        lower_level_id = int(match.groups()[3])
+        lower_level = configuration_dict[lower_level_id]
+        rate_type_adas = match.groups()[4]
+        if rate_type_adas == 'EXCIT':
+            rate_type = 'excitation'
+        elif rate_type_adas == 'RECOM':
+            rate_type = 'recombination'
+        elif rate_type_adas == 'CHEXC':
+            rate_type = 'cx_thermal'
+        else:
+            raise ValueError("Unrecognised rate type - {}".format(rate_type_adas))
+
+        config[rate_type][element][charge][(upper_level, lower_level)] = block_num
+        config["wavelength"][element][charge][(upper_level, lower_level)] = wavelength
 
     return config
 

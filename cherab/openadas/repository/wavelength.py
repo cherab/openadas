@@ -20,14 +20,14 @@ import os
 import json
 from cherab.core.utility import RecursiveDict
 from cherab.core.atomic import Element
-from .utility import DEFAULT_REPOSITORY_PATH, valid_ionisation, encode_transition
+from .utility import DEFAULT_REPOSITORY_PATH, valid_charge, encode_transition
 
 """
 Utilities for managing the local rate repository - wavelength section.
 """
 
 
-def add_wavelength(element, ionisation, transition, wavelength, repository_path=None):
+def add_wavelength(element, charge, transition, wavelength, repository_path=None):
     """
     Adds a single wavelength to the repository.
 
@@ -36,7 +36,7 @@ def add_wavelength(element, ionisation, transition, wavelength, repository_path=
     the rate files.
 
     :param element:
-    :param ionisation:
+    :param charge:
     :param transition:
     :param wavelength:
     :param repository_path:
@@ -44,7 +44,7 @@ def add_wavelength(element, ionisation, transition, wavelength, repository_path=
 
     update_wavelengths({
         element: {
-            ionisation: {
+            charge: {
                 transition: wavelength
             }
         }
@@ -55,17 +55,17 @@ def update_wavelengths(wavelengths, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
 
-    for element, ionisations in wavelengths.items():
-        for ionisation, transitions in ionisations.items():
+    for element, charge_states in wavelengths.items():
+        for charge, transitions in charge_states.items():
 
             # sanitise and validate
             if not isinstance(element, Element):
                 raise TypeError('The element must be an Element object.')
 
-            if not valid_ionisation(element, ionisation):
-                raise ValueError('Ionisation level is larger than the number of protons in the element.')
+            if not valid_charge(element, charge):
+                raise ValueError('The charge state is larger than the number of protons in the element.')
 
-            path = os.path.join(repository_path, 'wavelength/{}/{}.json'.format(element.symbol.lower(), ionisation))
+            path = os.path.join(repository_path, 'wavelength/{}/{}.json'.format(element.symbol.lower(), charge))
 
             # read in any existing wavelengths
             try:
@@ -77,7 +77,7 @@ def update_wavelengths(wavelengths, repository_path=None):
             # add/replace data for a transition
             for transition in transitions:
                 key = encode_transition(transition)
-                content[key] = float(wavelengths[element][ionisation][transition])
+                content[key] = float(wavelengths[element][charge][transition])
 
             # create directory structure if missing
             directory = os.path.dirname(path)
@@ -89,15 +89,15 @@ def update_wavelengths(wavelengths, repository_path=None):
                 json.dump(content, f, indent=2, sort_keys=True)
 
 
-def get_wavelength(element, ionisation, transition, repository_path=None):
+def get_wavelength(element, charge, transition, repository_path=None):
 
     repository_path = repository_path or DEFAULT_REPOSITORY_PATH
-    path = os.path.join(repository_path, 'wavelength/{}/{}.json'.format(element.symbol.lower(), ionisation))
+    path = os.path.join(repository_path, 'wavelength/{}/{}.json'.format(element.symbol.lower(), charge))
     try:
         with open(path, 'r') as f:
             content = json.load(f)
         return content[encode_transition(transition)]
     except (FileNotFoundError, KeyError):
-        raise RuntimeError('Requested wavelength (element={}, ionisation={}, transition={})'
-                           ' is not available.'.format(element.symbol, ionisation, transition))
+        raise RuntimeError('Requested wavelength (element={}, charge={}, transition={})'
+                           ' is not available.'.format(element.symbol, charge, transition))
 
