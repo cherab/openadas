@@ -8,8 +8,6 @@ from scipy.optimize import lsq_linear
 def get_rates_recombination(element):
     """
     load recombinatio rates for all ionic stages
-    :param element:
-    :return:
     """
     coef_recom = {}
     for i in np.arange(1, elem.atomic_number + 1):
@@ -21,10 +19,6 @@ def get_rates_recombination(element):
 def get_rates_tcx(donor, donor_charge, receiver):
     """
     load thermal charge-exchange recombination rates for all ionic stages
-    :param donor:
-    :param donor_charge:
-    :param receiver:
-    :return:
     """
     coef_tcx = {}
     for i in np.arange(1, elem.atomic_number + 1):
@@ -47,9 +41,10 @@ def get_rates_ionisation(element):
 
 
 def solve_ion_balance(element, n_e, t_e, coef_ion, coef_recom, nh0=None, coef_tcx=None):
+
     atomic_number = element.atomic_number
 
-    # construct the fractional abundance mat
+    # construct the fractional abundance matrix
     matbal = np.zeros((atomic_number + 1, atomic_number + 1))
 
     matbal[0, 0] -= coef_ion[0](n_e, t_e)
@@ -70,7 +65,7 @@ def solve_ion_balance(element, n_e, t_e, coef_ion, coef_recom, nh0=None, coef_tc
             matbal[i, i + 1] += nh0 / n_e * coef_tcx[i + 1](n_e, t_e)
 
     # for some reason calculation of stage abundance seems to yield better results than calculation of fractional abun.
-    matbal = matbal * ne  # multiply by ne to calulate abundance instead of fractional abundance
+    matbal = matbal * ne  # multiply by ne to calculate abundance instead of fractional abundance
 
     # add sum constraints. Sum of all stages should be equal to electron density
     matbal = np.concatenate((matbal, np.ones((1, matbal.shape[1]))), axis=0)
@@ -104,6 +99,7 @@ rates_tcx = get_rates_tcx(hydrogen, 0, elem)
 electron_temperatures = [10 ** x for x in np.linspace(np.log10(rates_recom[1].raw_data["te"].min()),
                                                       np.log10(rates_recom[1].raw_data["te"].max()),
                                                       num=temperature_steps)]
+
 # calculate ionization balance for electron temperature rates
 ion_balance = np.zeros((elem.atomic_number + 1, len(electron_temperatures)))
 ion_balance_tcx = np.zeros((elem.atomic_number + 1, len(electron_temperatures)))
@@ -112,7 +108,7 @@ for j, te in enumerate(electron_temperatures):
     ion_balance_tcx[:, j] = solve_ion_balance(elem, ne, te, rates_ion, rates_recom, nh0, rates_tcx)
 
 
-# do the plots
+# plot results
 for i in range(elem.atomic_number + 1):
     try:
         ionisation_rates = [rates_ion[i](1E19, x) for x in electron_temperatures]
