@@ -9,10 +9,10 @@ from cherab.openadas import OpenADAS
 adas = OpenADAS()
 
 # load the PEC rate objects for transitions of interest
-dalpha = adas.impact_excitation_rate(deuterium, 0, (3, 2))
-heliumii_468 = adas.impact_excitation_rate(helium, 1, (4, 3))
-carbonii_515 = adas.impact_excitation_rate(carbon, 1, ("2s1 2p1 3d1 2D4.5", "2s2 4d1 2D4.5"))
-carboniii_465 = adas.impact_excitation_rate(carbon, 2, ("2s1 3p1 3P4.0", "2s1 3s1 3S1.0"))
+dalpha = adas.impact_excitation_pec(deuterium, 0, (3, 2))
+heliumii_468 = adas.impact_excitation_pec(helium, 1, (4, 3))
+carbonii_515 = adas.impact_excitation_pec(carbon, 1, ("2s1 2p1 3d1 2D4.5", "2s2 4d1 2D4.5"))
+carboniii_465 = adas.impact_excitation_pec(carbon, 2, ("2s1 3p1 3P4.0", "2s1 3s1 3S1.0"))
 
 # settings for plot range
 temp_low = 1
