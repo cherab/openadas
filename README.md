@@ -1,0 +1,1 @@
+The cherab-openadas package has been merged into the main core cherab package. This package is no longer necessary.
